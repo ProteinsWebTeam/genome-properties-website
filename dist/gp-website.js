@@ -3057,28 +3057,28 @@ var GenomePropertiesWebsite = function () {
     this.cache = {};
     this.loadContent();
     window.onclick = function (ev) {
-      if (ev.srcElement.localName === "a" && ev.srcElement.parentNode.localName === "li" && ev.srcElement.parentNode.className.indexOf("tabs-title") > -1) {
+      if (ev.target.localName === "a" && ev.target.parentNode.localName === "li" && ev.target.parentNode.className.indexOf("tabs-title") > -1) {
         document.querySelectorAll("#step-tabs li a").forEach(function (e) {
           return e.setAttribute("aria-selected", null);
         });
         document.querySelectorAll("#step-tabs li").forEach(function (e) {
           return e.classList.remove("is-active");
         });
-        ev.srcElement.setAttribute("aria-selected", true);
-        ev.srcElement.parentNode.classList.add("is-active");
+        ev.target.setAttribute("aria-selected", true);
+        ev.target.parentNode.classList.add("is-active");
         document.querySelectorAll("div[data-tabs-content=step-tabs] .tabs-panel").forEach(function (e) {
           return e.classList.remove("is-active");
         });
-        var target = ev.srcElement.getAttribute("target");
+        var target = ev.target.getAttribute("target");
         document.querySelector(target).classList.add("is-active");
-      } else if (ev.srcElement.localName === "a" && ev.srcElement.parentNode.localName === "header" && ev.srcElement.parentNode.parentNode.localName === "div" && ev.srcElement.parentNode.parentNode.className.indexOf("genome-property") > -1) {
-        var expanded = ev.srcElement.parentNode.parentNode.className.indexOf("expanded") > -1;
+      } else if (ev.target.localName === "a" && ev.target.parentNode.localName === "header" && ev.target.parentNode.parentNode.localName === "div" && ev.target.parentNode.parentNode.className.indexOf("genome-property") > -1) {
+        var expanded = ev.target.parentNode.parentNode.className.indexOf("expanded") > -1;
         if (expanded) {
-          ev.srcElement.innerHTML = '▸';
-          ev.srcElement.parentNode.parentNode.classList.remove("expanded");
+          ev.target.innerHTML = '▸';
+          ev.target.parentNode.parentNode.classList.remove("expanded");
         } else {
-          ev.srcElement.innerHTML = '▾';
-          ev.srcElement.parentNode.parentNode.classList.add("expanded");
+          ev.target.innerHTML = '▾';
+          ev.target.parentNode.parentNode.classList.add("expanded");
         }
       }
     };
