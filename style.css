@@ -1,0 +1,35 @@
+.masthead {
+  background-image: url("images/background.png")
+}
+.masthead a, .masthead a:hover, .masthead a:active, .masthead a:visited {
+  color: #333548;
+}
+.masthead .menu li a {
+  background-color: rgba(220,240,255,0.5);
+}
+.is-active {
+  display: block;
+}
+.tabs-content {
+  border: 0;
+  background: #fafafa;
+}
+.genome-property>.children{
+  margin: 5px;
+  display: none;
+}
+.genome-property.expanded>.children{
+  display: block;
+}
+ul.references {
+  list-style: none outside none;
+}
+ul.references li {
+  margin-left: 1em;
+  text-indent: -1em;
+}
+
+ul.references li .authors {font-style: italic;}
+ul.references li .title {font-weight: bold;}
+
+.selected {text-shadow: yellow 1px 1px;}

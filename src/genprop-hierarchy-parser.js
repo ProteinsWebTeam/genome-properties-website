@@ -1,8 +1,12 @@
 const parseGenPropHierarchy = (txt) => {
+  const ignore = ['GenProp0068']
   const hierarchy = {};
   txt.split('\n').forEach(line => {
     const parts = line.split('\t');
-    if (parts[0].trim() !== '') {
+    if (parts[0].trim() !== '' &&
+        ignore.indexOf(parts[0])==-1 &&
+        ignore.indexOf(parts[2])==-1
+    ) {
       if (!(parts[0] in hierarchy))
         hierarchy[parts[0]] = {
           id: parts[0],

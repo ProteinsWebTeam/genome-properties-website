@@ -53,31 +53,8 @@
   <!-- you can replace this with theme-[projectname].css. See http://www.ebi.ac.uk/web/style/colour for details of how to do this -->
   <!-- also inform ES so we can host your colour palette file -->
   <link rel="stylesheet" href="//www.ebi.ac.uk/web_guidelines/EBI-Framework/v1.2/css/theme-light.css" type="text/css" media="all" />
-  <style>
-   .masthead {
-     background-image: url("images/background.png")
-   }
-   .masthead a, .masthead a:hover, .masthead a:active, .masthead a:visited {
-     color: #333548;
-   }
-   .masthead .menu li a {
-     background-color: rgba(220,240,255,0.5);
-   }
-   .is-active {
-     display: block;
-   }
-   .tabs-content {
-     border: 0;
-     background: #fafafa;
-   }
-   .genome-property>.children{
-     margin: 5px;
-     display: none;
-   }
-   .genome-property.expanded>.children{
-     display: block;
-   }
-  </style>
+  <link rel="stylesheet" href="dist/gp-style.css" type="text/css" media="all" />
+  <link rel="stylesheet" href="style.css" type="text/css" media="all" />
   <!-- end CSS-->
 </head>
 
@@ -200,6 +177,7 @@
   </script>
   -->
   <script src="dist/gp-website.js"></script>
+  <script src="dist/d3.custom.min.js"></script>
   <script type="text/JavaScript">
     var gpw = new GenomePropertiesWebsite("#main-content-area");
   </script>

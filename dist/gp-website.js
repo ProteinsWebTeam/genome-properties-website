@@ -3018,10 +3018,11 @@ var parseGenProp = function parseGenProp(txt) {
 };
 
 var parseGenPropHierarchy = function parseGenPropHierarchy(txt) {
+  var ignore = ['GenProp0068'];
   var hierarchy = {};
   txt.split('\n').forEach(function (line) {
     var parts = line.split('\t');
-    if (parts[0].trim() !== '') {
+    if (parts[0].trim() !== '' && ignore.indexOf(parts[0]) == -1 && ignore.indexOf(parts[2]) == -1) {
       if (!(parts[0] in hierarchy)) hierarchy[parts[0]] = {
         id: parts[0],
         name: parts[1],
@@ -3050,6 +3051,7 @@ var GenomePropertiesWebsite = function () {
 
     _classCallCheck(this, GenomePropertiesWebsite);
 
+    this.selector = selector;
     this.container = document.querySelector(selector);
     window.onhashchange = function () {
       return _this.loadContent();
@@ -3082,11 +3084,28 @@ var GenomePropertiesWebsite = function () {
         }
       }
     };
+    window.onchange = function (ev) {
+      console.log(ev.target.id);
+      if (ev.target.id === 'newfile') {
+
+        var oFiles = document.getElementById("newfile").files;
+        for (var i = 0; i < oFiles.length; i++) {
+          var reader = new FileReader();
+          reader.fileToRead = oFiles[i];
+          reader.onload = function (evt) {
+            viewer.load_genome_properties_text(evt.target.fileToRead.name, evt.target.result);
+          };
+          reader.readAsText(oFiles[i]);
+        }
+      }
+    };
   }
 
   _createClass(GenomePropertiesWebsite, [{
     key: "loadContent",
     value: function loadContent() {
+      var pageRequiredToChange = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
       switch (location.hash) {
         case "#home":case "":
           this.container.innerHTML = this.getHome();
@@ -3097,14 +3116,34 @@ var GenomePropertiesWebsite = function () {
         case "#properties":
           this.container.innerHTML = this.getProps();
           break;
+        case "#viewer":
+          this.container.innerHTML = this.getViewerHTML();
+          var d3 = gpv.d3,
+              GenomePropertiesViewer = gpv.GenomePropertiesViewer,
+              viewer = new GenomePropertiesViewer({
+            element_selector: "#gp-viewer",
+            controller_element_selector: "#gp-selector",
+            server: "http://www.ebi.ac.uk/~gsalazar/genome_property.php?org=",
+            hierarchy_path: "./files/gp.dag.txt",
+            whitelist_path: "https://raw.githubusercontent.com/ProteinsWebTeam/genome-properties-viewer/master/test-files/gp_white_list.json",
+            server_tax: "./files/taxonomy.json",
+            height: 700
+          });
+          window.viewer = viewer;
+          d3.select(".minimise").on("click", function (d, i, c) {
+            var on = d3.select(c[i]).classed("on");
+            d3.selectAll(".top-controllers>div").style("max-height", on ? "0px" : "500px").style("overflow", on ? null : "hidden").transition(200).style("max-height", on ? "500px" : "0px").style("opacity", on ? 1 : 0);
+            d3.selectAll(".top-controllers").transition(200).style("padding", on ? "5px" : "0px");
+            d3.select(c[i]).classed("on", !on);
+          });
+          break;
         default:
           if (location.hash.match(/^#GenProp\d{4}$/)) {
             this.container.innerHTML = this.getGenProp(location.hash.substr(1));
             return;
           }
-
-          this.container.innerHTML = "404: Not found";
-          console.log("other", location.hash);
+          if (pageRequiredToChange) this.container.innerHTML = "404: Not found";
+        // console.log("other", location.hash);
       }
     }
   }, {
@@ -3129,7 +3168,7 @@ var GenomePropertiesWebsite = function () {
       }).then(function (a) {
         var html = loader(a);
         _this2.cache[key] = _this2.embbedInSection(html);
-        _this2.loadContent();
+        _this2.loadContent(true);
       }).catch(function (a) {
         return console.error(a);
       });
@@ -3139,38 +3178,77 @@ var GenomePropertiesWebsite = function () {
   }, {
     key: "renderGenProp",
     value: function renderGenProp(property) {
-      return "\n    <h2>" + property.accession + "</h2>\n      <h3>" + property.name + "</h3>\n      <span class=\"tag\">" + property.type + "</span> <span class=\"tag secondary\">Trashhold: " + property.threshold + "</span>\n      <br/><br/>\n      <div class=\"row\">\n        <h4>Description</h4>\n        <p>" + property.description + "</p>\n      </div>\n      <div class=\"row\">\n        <h4>Databases</h4>\n        <ul>\n          " + property.databases.map(function (db) {
-        return "\n            <li><b>" + db.title + "</b>: " + db.link + "</li>\n          ";
-      }).join('') + "\n        </ul>\n      </div>\n      <div class=\"row\">\n        <h4>Steps</h4>\n        <div class=\"medium-3 columns\">\n          <ul class=\"vertical tabs\" data-tabs id=\"step-tabs\">\n            " + property.steps.map(function (step, i) {
-        return "\n              <li class=\"tabs-title " + (i === 0 ? 'is-active' : '') + "\">\n                <a target=\"#panel" + step.number + "\" " + (i === 0 ? 'aria-selected="true"' : '') + ">Step " + step.number + "</a>\n              </li>\n            ";
+      var _this3 = this;
+
+      return "\n    <h2>" + property.accession + "</h2>\n      <h3>" + property.name + "</h3>\n      <span class=\"tag\">" + property.type + "</span> <span class=\"tag secondary\">Threshold: " + property.threshold + "</span>\n      <br/><br/>\n      <div class=\"row\">\n        <h4>Description</h4>\n        <p>" + this.renderDescription(property.description, property.accession) + "</p>\n      </div>\n      <div class=\"row\">\n        <h4>Steps</h4>\n        <div class=\"medium-3 columns\">\n          <ul class=\"vertical tabs\" data-tabs id=\"step-tabs\">\n            " + property.steps.map(function (step, i) {
+        return "\n              <li class=\"tabs-title " + (i === 0 ? 'is-active' : '') + "\">\n                <a target=\"#panel" + step.number + "\" " + (i === 0 ? 'aria-selected="true"' : '') + ">\n                  " + step.number + ". " + step.id + "\n                </a>\n              </li>\n            ";
       }).join('') + "\n          </ul>\n        </div>\n        <div class=\"medium-9 columns\">\n          <div class=\"tabs-content\" data-tabs-content=\"step-tabs\">\n          " + property.steps.map(function (step, i) {
-        return "\n            <div class=\"tabs-panel " + (i === 0 ? 'is-active' : '') + "\" id=\"panel" + step.number + "\">\n              <h5>" + step.id + "</h5>\n              <p>Requires Step " + step.requires + "</p>\n              <table>\n                <tr>\n                  <th>Evidence</th>\n                  <th>Go Terms</th>\n                </tr>\n                " + step.evidence_list.map(function (e, i) {
-          return "\n                  <tr>\n                    <td>" + e.evidence + "</td>\n                    <td>" + e.go + "</td>\n                  </tr>\n                ";
+        return "\n            <div class=\"tabs-panel " + (i === 0 ? 'is-active' : '') + "\" id=\"panel" + step.number + "\">\n              <h5>" + step.id + "</h5>\n              " + (step.requires === "1" ? '<span class="tag">Required</span>' : '') + "\n              <table>\n                <tr>\n                  <th>Evidence</th>\n                  <th>Go Terms</th>\n                </tr>\n                " + step.evidence_list.map(function (e, i) {
+          return "\n                  <tr>\n                    <td>" + _this3.renderEvidence(e.evidence) + "</td>\n                    <td>" + _this3.renderEvidence(e.go) + "</td>\n                  </tr>\n                ";
         }).join('') + "\n              </table>\n            </div>\n          ";
-      }).join('') + "\n          </div>\n        </div>\n      </div>\n      <div class=\"row\">\n        <h4>Notes</h4>\n        <p>" + property.notes + "</p>\n      </div>\n      <div class=\"row\">\n        <h4>References</h4>\n        <ul>\n          " + property.references.map(function (ref) {
-        return "\n              <li class=\"reference\">\n                <span class=\"index\">" + ref.number + "</span>\n                <span class=\"authors\">" + ref.author + "</span>\n                <span class=\"citation\">" + ref.title + "</span>\n                <span class=\"citation\">" + ref.citation + "</span>\n                <span class=\"reference_id\">" + ref.PMID + "</span>\n                <a target=\"_blank\" rel=\"noopener\" href=\"https://europepmc.org/abstract/MED/" + ref.PMID + "\">EuropePMC</a>\n              </li>\n          ";
+      }).join('') + "\n          </div>\n        </div>\n      </div>\n      <div class=\"row\">\n        <h4>Database Links</h4>\n        <ul>\n          " + property.databases.map(function (db) {
+        return "\n            <li>" + _this3.renderDatabaseLink(db.title, db.link) + "</li>\n          ";
+      }).join('') + "\n        </ul>\n      </div>\n      <div class=\"row\">\n        <h4>References</h4>\n        <ul class=\"references\">\n          " + property.references.map(function (ref) {
+        return "\n              <li class=\"reference\" id=\"" + property.accession + "-" + ref.number + "\">\n                <span class=\"index\">[" + ref.number + "]</span>\n                <span class=\"authors\">" + ref.author + "</span>\n                <span class=\"title\">" + ref.title + "</span>\n                <span class=\"citation\">" + ref.citation + "</span>\n                <span class=\"reference_id\">" + ref.PMID + "</span>\n                <a target=\"_blank\" rel=\"noopener\" href=\"https://europepmc.org/abstract/MED/" + ref.PMID + "\">EuropePMC</a>\n              </li>\n          ";
       }).join('') + "\n        </ul>\n      </div>\n\n    ";
+    }
+  }, {
+    key: "renderDescription",
+    value: function renderDescription(txt, acc) {
+      return txt.replace(/\[(\d+)\]/g, "<a href=\"#" + acc + "-$1\">[$1]</a>");
+    }
+  }, {
+    key: "renderDatabaseLink",
+    value: function renderDatabaseLink(title, link) {
+      var a = link;
+      var parts = link.split(';').map(function (p) {
+        return p.trim();
+      });
+      if (parts[0] === 'KEGG') a = "<a\n        href=\"http://www.genome.jp/dbget-bin/www_bget?pathway:" + parts[1] + "\"\n      >KEGG</a>";else if (parts[0] === 'IUBMB') a = "<a\n        href=\"http://www.chem.qmul.ac.uk/iubmb/enzyme/reaction/" + parts[1] + "/" + parts[2] + ".html\"\n      >IUBMB</a>";else if (parts[0] === 'MetaCyc') a = "<a\n        href=\"https://metacyc.org/META/NEW-IMAGE?type=NIL&object=" + parts[1] + "\"\n      >MetaCyc</a>";
+      return "<b>" + title + "</b>: " + a;
+    }
+  }, {
+    key: "renderEvidence",
+    value: function renderEvidence(txt) {
+      if (!txt) return '';
+      var parts = txt.split(';');
+      return parts.filter(function (p) {
+        return p.trim() !== '';
+      }).map(function (t) {
+        var term = t.trim();
+        if (term.startsWith("GO:")) return "<a href=\"http://www.ebi.ac.uk/QuickGO/GTerm?id=" + term + "\">" + term + "</a>";
+        if (term.startsWith("GenProp")) return "<a href=\"#" + term + "\">" + term + "</a>";
+        if (term.startsWith("IPR")) return "<a href=\"https://www.ebi.ac.uk/interpro/entry/" + term + "\">" + term + "</a>";
+        if (term.startsWith("TIGR")) return "<a href=\"http://www.jcvi.org/cgi-bin/tigrfams/HmmReportPage.cgi?acc=" + term + "\">" + term + "</a>";else {
+          return term;
+        }
+      }).join(' - ');
     }
   }, {
     key: "renderGenPropHierarchy",
     value: function renderGenPropHierarchy(hierarchy) {
-      var _this3 = this;
+      var _this4 = this;
 
       var expanded = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
       var level = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
 
       return "\n    <div class=\"genome-property " + (expanded ? 'expanded' : '') + "\">\n      <header>\n        " + (!hierarchy.children.length ? '・' : "\n        <a style=\"border: 0;color: darkred;\">" + (expanded ? '▾' : '▸') + "</a>\n        ") + "\n        <a href=\"#" + hierarchy.id + "\">" + hierarchy.id + "</a>: " + hierarchy.name + "\n      </header>\n      " + (!hierarchy.children.length ? '' : "\n        <div class=\"children\" style=\"\n          margin-left: " + level * 10 + "px;\n        \">\n          " + hierarchy.children.map(function (child) {
-        return _this3.renderGenPropHierarchy(child, false, level + 1);
+        return _this4.renderGenPropHierarchy(child, false, level + 1);
       }).join('') + "\n        </div>\n      ") + "\n    </div>\n    ";
+    }
+  }, {
+    key: "getViewerHTML",
+    value: function getViewerHTML() {
+      return "\n      <div class=\"container\">\n        <div class=\"top-block\">\n            <div id=\"gp-controllers\" class=\"top-controllers\">\n                <div>\n                    <header>Taxonomy Options</header>\n                    <ul>\n                        <li><label for=\"tax-search\">Search:</label>\n                            <input type=\"text\" id=\"tax-search\">\n                        </li>\n                        <li>\n                            <label for=\"newfile\">Upload File: </label>\n                            <input type=\"file\" id=\"newfile\"/>\n                        </li>\n                        <li><input type=\"checkbox\" id=\"collapse_tree\" checked=\"checked\"/><label for=\"collapse_tree\">Collapse tree</label></li>\n                        <li><label for=\"tax_label\">Labels:</label>\n                            <select id=\"tax_label\">\n                                <option value=\"name\">Species</option>\n                                <option value=\"id\">Tax ID</option>\n                                <option value=\"both\">Both</option>\n                            </select>\n                        </li>\n\n                    </ul>\n                </div>\n                <div>\n                    <header>Genome Properties Options</header>\n                    <ul>\n                        <li><label for=\"gp-selector\">Top level category:</label><br/>\n                            <div id=\"gp-selector\" class=\"selector\"></div>\n                        </li>\n                        <li><label for=\"gp-filter\">Filter:</label><br/>\n                            <input type=\"text\" id=\"gp-filter\">\n                        </li>\n                        <li><label for=\"gp_label\">Label:</label><br/>\n                            <select id=\"gp_label\">\n                                <option value=\"name\">Name</option>\n                                <option value=\"id\">ID</option>\n                                <option value=\"both\">Both</option>\n                            </select>\n                        </li>\n                    </ul>\n                </div>\n                <div class=\"gp-legends\">\n                    <header>Legends</header>\n                </div>\n                <a class=\"minimise\"></a>\n            </div>\n        </div>\n        <div id=\"gp-viewer\"></div>\n        <div class=\"info-tooltip\"></div>\n    </div>";
     }
   }, {
     key: "getGenProp",
     value: function getGenProp(acc) {
-      var _this4 = this;
+      var _this5 = this;
 
       var url = "https://raw.githubusercontent.com/rdfinn/genome-properties/master/data/" + acc + "/DESC";
       return this.getResource(acc, url, function (txt) {
-        return _this4.renderGenProp(parseGenProp(txt));
+        return _this5.renderGenProp(parseGenProp(txt));
       });
     }
   }, {
@@ -3186,10 +3264,10 @@ var GenomePropertiesWebsite = function () {
   }, {
     key: "getProps",
     value: function getProps() {
-      var _this5 = this;
+      var _this6 = this;
 
-      return this.getResource('props', 'files/gp.primary_dag.txt', function (txt) {
-        return '<h1>Hierarchy</h1>' + _this5.renderGenPropHierarchy(parseGenPropHierarchy(txt)['GenProp0065']);
+      return this.getResource('props', 'files/gp.dag2.txt', function (txt) {
+        return '<h1>Hierarchy</h1>' + _this6.renderGenPropHierarchy(parseGenPropHierarchy(txt)['GenProp0065']);
         // return `<pre>${JSON.stringify(parseGenPropHierarchy(txt)['GenProp0065'], null, ' ')}</pre>`;
       });
     }

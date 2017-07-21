@@ -4,6 +4,7 @@ import parseGenPropHierarchy from "./genprop-hierarchy-parser";
 
 class GenomePropertiesWebsite {
   constructor(selector) {
+    this.selector = selector;
     this.container = document.querySelector(selector);
     window.onhashchange = () => this.loadContent();
     this.cache = {};
@@ -35,8 +36,23 @@ class GenomePropertiesWebsite {
         }
       }
     }
+    window.onchange = function(ev){
+      console.log(ev.target.id);
+      if (ev.target.id==='newfile'){
+
+        const oFiles = document.getElementById("newfile").files;
+        for (let i=0; i < oFiles.length; i++){
+            const reader = new FileReader();
+            reader.fileToRead = oFiles[i];
+            reader.onload = function(evt) {
+                viewer.load_genome_properties_text(evt.target.fileToRead.name, evt.target.result);
+            };
+            reader.readAsText(oFiles[i]);
+        }
+      }
+    }
   }
-  loadContent() {
+  loadContent(pageRequiredToChange=false) {
     switch (location.hash) {
       case "#home": case "":
         this.container.innerHTML = this.getHome();
@@ -47,14 +63,40 @@ class GenomePropertiesWebsite {
       case "#properties":
         this.container.innerHTML = this.getProps();
         break;
+      case "#viewer":
+        this.container.innerHTML = this.getViewerHTML();
+        var d3 = gpv.d3,
+                GenomePropertiesViewer = gpv.GenomePropertiesViewer,
+                viewer = new GenomePropertiesViewer({
+                    element_selector: "#gp-viewer",
+                    controller_element_selector: "#gp-selector",
+                    server: "http://www.ebi.ac.uk/~gsalazar/genome_property.php?org=",
+                    hierarchy_path: "./files/gp.dag.txt",
+                    whitelist_path: "https://raw.githubusercontent.com/ProteinsWebTeam/genome-properties-viewer/master/test-files/gp_white_list.json",
+                    server_tax: "./files/taxonomy.json",
+                    height: 700
+                });
+          window.viewer = viewer;
+          d3.select(".minimise").on("click",(d,i,c)=>{
+              const on = d3.select(c[i]).classed("on");
+              d3.selectAll(".top-controllers>div")
+                      .style("max-height", on?"0px":"500px")
+                      .style("overflow", on?null:"hidden")
+                      .transition(200)
+                      .style("max-height", on?"500px":"0px")
+                      .style("opacity", on?1:0);
+              d3.selectAll(".top-controllers").transition(200).style("padding", on?"5px":"0px");
+              d3.select(c[i]).classed("on", !on);
+          });
+        break;
       default:
         if (location.hash.match(/^#GenProp\d{4}$/)){
           this.container.innerHTML = this.getGenProp(location.hash.substr(1));
           return;
         }
-
-        this.container.innerHTML = "404: Not found";
-        console.log("other", location.hash);
+        if (pageRequiredToChange)
+          this.container.innerHTML = "404: Not found";
+        // console.log("other", location.hash);
     }
   }
   embbedInSection(html){
@@ -79,7 +121,7 @@ class GenomePropertiesWebsite {
       .then(a=>{
         const html = loader(a);
         this.cache[key] = this.embbedInSection(html);
-        this.loadContent();
+        this.loadContent(true);
       })
       .catch(a=>console.error(a));
 
@@ -89,19 +131,11 @@ class GenomePropertiesWebsite {
     return `
     <h2>${property.accession}</h2>
       <h3>${property.name}</h3>
-      <span class="tag">${property.type}</span> <span class="tag secondary">Trashhold: ${property.threshold}</span>
+      <span class="tag">${property.type}</span> <span class="tag secondary">Threshold: ${property.threshold}</span>
       <br/><br/>
       <div class="row">
         <h4>Description</h4>
-        <p>${property.description}</p>
-      </div>
-      <div class="row">
-        <h4>Databases</h4>
-        <ul>
-          ${property.databases.map(db => `
-            <li><b>${db.title}</b>: ${db.link}</li>
-          `).join('')}
-        </ul>
+        <p>${this.renderDescription(property.description, property.accession)}</p>
       </div>
       <div class="row">
         <h4>Steps</h4>
@@ -109,7 +143,9 @@ class GenomePropertiesWebsite {
           <ul class="vertical tabs" data-tabs id="step-tabs">
             ${property.steps.map((step,i) => `
               <li class="tabs-title ${i===0?'is-active':''}">
-                <a target="#panel${step.number}" ${i===0?'aria-selected="true"':''}>Step ${step.number}</a>
+                <a target="#panel${step.number}" ${i===0?'aria-selected="true"':''}>
+                  ${step.number}. ${step.id}
+                </a>
               </li>
             `).join('')}
           </ul>
@@ -119,7 +155,7 @@ class GenomePropertiesWebsite {
           ${property.steps.map((step,i) => `
             <div class="tabs-panel ${i===0?'is-active':''}" id="panel${step.number}">
               <h5>${step.id}</h5>
-              <p>Requires Step ${step.requires}</p>
+              ${step.requires==="1"?'<span class="tag">Required</span>':''}
               <table>
                 <tr>
                   <th>Evidence</th>
@@ -127,8 +163,8 @@ class GenomePropertiesWebsite {
                 </tr>
                 ${step.evidence_list.map((e,i) => `
                   <tr>
-                    <td>${e.evidence}</td>
-                    <td>${e.go}</td>
+                    <td>${this.renderEvidence(e.evidence)}</td>
+                    <td>${this.renderEvidence(e.go)}</td>
                   </tr>
                 `).join('')}
               </table>
@@ -138,17 +174,21 @@ class GenomePropertiesWebsite {
         </div>
       </div>
       <div class="row">
-        <h4>Notes</h4>
-        <p>${property.notes}</p>
+        <h4>Database Links</h4>
+        <ul>
+          ${property.databases.map(db => `
+            <li>${this.renderDatabaseLink(db.title, db.link)}</li>
+          `).join('')}
+        </ul>
       </div>
       <div class="row">
         <h4>References</h4>
-        <ul>
+        <ul class="references">
           ${property.references.map(ref => `
-              <li class="reference">
-                <span class="index">${ref.number}</span>
+              <li class="reference" id="${property.accession}-${ref.number}">
+                <span class="index">[${ref.number}]</span>
                 <span class="authors">${ref.author}</span>
-                <span class="citation">${ref.title}</span>
+                <span class="title">${ref.title}</span>
                 <span class="citation">${ref.citation}</span>
                 <span class="reference_id">${ref.PMID}</span>
                 <a target="_blank" rel="noopener" href="https://europepmc.org/abstract/MED/${ref.PMID}">EuropePMC</a>
@@ -158,6 +198,46 @@ class GenomePropertiesWebsite {
       </div>
 
     `;
+  }
+  renderDescription(txt, acc){
+    return txt.replace(/\[(\d+)\]/g, `<a href="#${acc}-$1">[$1]</a>`);
+  }
+  renderDatabaseLink(title, link){
+    let a = link;
+    const parts = link.split(';').map(p => p.trim());
+    if (parts[0] === 'KEGG')
+      a = `<a
+        href="http://www.genome.jp/dbget-bin/www_bget?pathway:${parts[1]}"
+      >KEGG</a>`;
+    else if (parts[0] === 'IUBMB')
+      a = `<a
+        href="http://www.chem.qmul.ac.uk/iubmb/enzyme/reaction/${parts[1]}/${parts[2]}.html"
+      >IUBMB</a>`
+    else if (parts[0] === 'MetaCyc')
+      a = `<a
+        href="https://metacyc.org/META/NEW-IMAGE?type=NIL&object=${parts[1]}"
+      >MetaCyc</a>`
+    return `<b>${title}</b>: ${a}`;
+  }
+  renderEvidence(txt){
+    if (!txt) return '';
+    const parts = txt.split(';');
+    return parts
+      .filter(p => p.trim()!=='')
+      .map(t => {
+        const term = t.trim();
+        if (term.startsWith("GO:"))
+          return `<a href="http://www.ebi.ac.uk/QuickGO/GTerm?id=${term}">${term}</a>`
+        if (term.startsWith("GenProp"))
+          return `<a href="#${term}">${term}</a>`
+        if (term.startsWith("IPR"))
+          return `<a href="https://www.ebi.ac.uk/interpro/entry/${term}">${term}</a>`
+        if (term.startsWith("TIGR"))
+          return `<a href="http://www.jcvi.org/cgi-bin/tigrfams/HmmReportPage.cgi?acc=${term}">${term}</a>`
+        else {
+          return term;
+        }
+      }).join(' - ')
   }
   renderGenPropHierarchy(hierarchy, expanded=true, level=1){
     return `
@@ -180,6 +260,60 @@ class GenomePropertiesWebsite {
     </div>
     `;
   }
+  getViewerHTML() {
+    return `
+      <div class="container">
+        <div class="top-block">
+            <div id="gp-controllers" class="top-controllers">
+                <div>
+                    <header>Taxonomy Options</header>
+                    <ul>
+                        <li><label for="tax-search">Search:</label>
+                            <input type="text" id="tax-search">
+                        </li>
+                        <li>
+                            <label for="newfile">Upload File: </label>
+                            <input type="file" id="newfile"/>
+                        </li>
+                        <li><input type="checkbox" id="collapse_tree" checked="checked"/><label for="collapse_tree">Collapse tree</label></li>
+                        <li><label for="tax_label">Labels:</label>
+                            <select id="tax_label">
+                                <option value="name">Species</option>
+                                <option value="id">Tax ID</option>
+                                <option value="both">Both</option>
+                            </select>
+                        </li>
+
+                    </ul>
+                </div>
+                <div>
+                    <header>Genome Properties Options</header>
+                    <ul>
+                        <li><label for="gp-selector">Top level category:</label><br/>
+                            <div id="gp-selector" class="selector"></div>
+                        </li>
+                        <li><label for="gp-filter">Filter:</label><br/>
+                            <input type="text" id="gp-filter">
+                        </li>
+                        <li><label for="gp_label">Label:</label><br/>
+                            <select id="gp_label">
+                                <option value="name">Name</option>
+                                <option value="id">ID</option>
+                                <option value="both">Both</option>
+                            </select>
+                        </li>
+                    </ul>
+                </div>
+                <div class="gp-legends">
+                    <header>Legends</header>
+                </div>
+                <a class="minimise"></a>
+            </div>
+        </div>
+        <div id="gp-viewer"></div>
+        <div class="info-tooltip"></div>
+    </div>`
+  }
   getGenProp(acc){
     const url = `https://raw.githubusercontent.com/rdfinn/genome-properties/master/data/${acc}/DESC`
     return this.getResource(acc, url, txt => this.renderGenProp(parseGenProp(txt)))
@@ -191,7 +325,7 @@ class GenomePropertiesWebsite {
     return this.getResource('docs', 'https://raw.githubusercontent.com/rdfinn/genome-properties/master/docs/index.rst', this.markup2html)
   }
   getProps(){
-    return this.getResource('props', 'files/gp.primary_dag.txt', txt => {
+    return this.getResource('props', 'files/gp.dag2.txt', txt => {
       return '<h1>Hierarchy</h1>'+this.renderGenPropHierarchy(parseGenPropHierarchy(txt)['GenProp0065'])
       // return `<pre>${JSON.stringify(parseGenPropHierarchy(txt)['GenProp0065'], null, ' ')}</pre>`;
     })

@@ -4,7 +4,7 @@
   "description": "Website for the Genome Properties project",
   "main": "index.js",
   "scripts": {
-    "build": "rm -rf dist && rollup -c",
+    "build": "rm -rf dist && rollup -c && cp node_modules/genome-properties-viewer/bin/* dist/ && cp node_modules/genome-properties-viewer/*.css dist/",
     "watch": "nodemon -w src -x \"npm run build\"",
     "serve": "browser-sync start --server -f dist/**/*.*",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -23,6 +23,7 @@
     "rollup-plugin-node-resolve": "^3.0.0"
   },
   "dependencies": {
+    "genome-properties-viewer": "git+https://github.com/ProteinsWebTeam/genome-properties-viewer.git",
     "showdown": "^1.7.1"
   }
 }
