@@ -45,7 +45,12 @@ class GenomePropertiesWebsite {
             const reader = new FileReader();
             reader.fileToRead = oFiles[i];
             reader.onload = function(evt) {
+              try {
                 viewer.load_genome_properties_text(evt.target.fileToRead.name, evt.target.result);
+              }catch(e){
+                  alert('Bad formatted file');
+                  console.error(e);
+              }
             };
             reader.readAsText(oFiles[i]);
         }
@@ -275,7 +280,6 @@ class GenomePropertiesWebsite {
                             <label for="newfile">Upload File: </label>
                             <input type="file" id="newfile"/>
                         </li>
-                        <li><input type="checkbox" id="collapse_tree" checked="checked"/><label for="collapse_tree">Collapse tree</label></li>
                         <li><label for="tax_label">Labels:</label>
                             <select id="tax_label">
                                 <option value="name">Species</option>
@@ -289,13 +293,13 @@ class GenomePropertiesWebsite {
                 <div>
                     <header>Genome Properties Options</header>
                     <ul>
-                        <li><label for="gp-selector">Top level category:</label><br/>
+                        <li><label for="gp-selector">Top level category:</label>
                             <div id="gp-selector" class="selector"></div>
                         </li>
-                        <li><label for="gp-filter">Filter:</label><br/>
+                        <li><label for="gp-filter">Filter:</label>
                             <input type="text" id="gp-filter">
                         </li>
-                        <li><label for="gp_label">Label:</label><br/>
+                        <li><label for="gp_label">Label:</label>
                             <select id="gp_label">
                                 <option value="name">Name</option>
                                 <option value="id">ID</option>
