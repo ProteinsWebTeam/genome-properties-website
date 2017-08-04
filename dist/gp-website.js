@@ -3053,13 +3053,14 @@ var GenomePropertiesWebsite = function () {
 
     this.selector = selector;
     this.container = document.querySelector(selector);
+    this.github = "https://raw.githubusercontent.com/rdfinn/genome-properties/master";
     window.onhashchange = function () {
       return _this.loadContent();
     };
     this.cache = {};
     this.loadContent();
     window.onclick = function (ev) {
-      if (ev.target.localName === "a" && ev.target.parentNode.localName === "li" && ev.target.parentNode.className.indexOf("tabs-title") > -1) {
+      if (location.hash.match(/^#GenProp\d{4}$/) && ev.target.localName === "a" && ev.target.parentNode.localName === "li" && ev.target.parentNode.className.indexOf("tabs-title") > -1) {
         document.querySelectorAll("#step-tabs li a").forEach(function (e) {
           return e.setAttribute("aria-selected", null);
         });
@@ -3111,15 +3112,33 @@ var GenomePropertiesWebsite = function () {
     value: function loadContent() {
       var pageRequiredToChange = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 
+      var resource = {
+        "#about": '/docs/background.rst',
+        "#calculating": '/docs/calculating.rst',
+        "#docs": '/docs/index.rst',
+        "#funding": '/docs/funding.rst',
+        "#contributing": 'docs/contributing.rst',
+        "#contact": 'docs/contact.rst'
+      };
       switch (location.hash) {
         case "#home":case "":
           this.container.innerHTML = this.getHome();
           break;
+        case "#about":
+        case "#calculating":
         case "#docs":
-          this.container.innerHTML = this.getDocs();
+        case "#funding":
+        case "#contributing":
+        case "#contact":
+          this.container.innerHTML = this.getFromGithubAndMarkup2HTML(resource[location.hash]);
           break;
-        case "#properties":
-          this.container.innerHTML = this.getProps();
+        case '#hierarchy':
+        case '#pathways':
+        case '#metapaths':
+        case '#systems':
+        case '#guilds':
+        case '#categories':
+          this.container.innerHTML = this.getBrowseTabs();
           break;
         case "#viewer":
           this.container.innerHTML = this.getViewerHTML();
@@ -3158,7 +3177,7 @@ var GenomePropertiesWebsite = function () {
     }
   }, {
     key: "markup2html",
-    value: function markup2html(txt, key) {
+    value: function markup2html(txt) {
       var converter = new showdown.Converter();
       return converter.makeHtml(txt);
     }
@@ -3237,6 +3256,7 @@ var GenomePropertiesWebsite = function () {
       var expanded = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
       var level = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
 
+      // console.log(hierarchy)
       return "\n    <div class=\"genome-property " + (expanded ? 'expanded' : '') + "\">\n      <header>\n        " + (!hierarchy.children.length ? '・' : "\n        <a style=\"border: 0;color: darkred;\">" + (expanded ? '▾' : '▸') + "</a>\n        ") + "\n        <a href=\"#" + hierarchy.id + "\">" + hierarchy.id + "</a>: " + hierarchy.name + "\n      </header>\n      " + (!hierarchy.children.length ? '' : "\n        <div class=\"children\" style=\"\n          margin-left: " + level * 10 + "px;\n        \">\n          " + hierarchy.children.map(function (child) {
         return _this4.renderGenPropHierarchy(child, false, level + 1);
       }).join('') + "\n        </div>\n      ") + "\n    </div>\n    ";
@@ -3251,7 +3271,7 @@ var GenomePropertiesWebsite = function () {
     value: function getGenProp(acc) {
       var _this5 = this;
 
-      var url = "https://raw.githubusercontent.com/rdfinn/genome-properties/master/data/" + acc + "/DESC";
+      var url = this.github + "/data/" + acc + "/DESC";
       return this.getResource(acc, url, function (txt) {
         return _this5.renderGenProp(parseGenProp(txt));
       });
@@ -3259,20 +3279,51 @@ var GenomePropertiesWebsite = function () {
   }, {
     key: "getHome",
     value: function getHome() {
-      return this.getResource('home', 'https://raw.githubusercontent.com/rdfinn/genome-properties/master/docs/background.rst', this.markup2html);
+      var _this6 = this;
+
+      return this.getResource('home', this.github + "/docs/landing.rst", function (txt) {
+        return _this6.markup2html('<br/>' + txt.replace("[BUTTON_BROWSE]", '<a href="#browse" class="button">Browse</a>').replace("[BUTTON_VIEWER]", '<a href="#viewer" class="button">Viewer</a>'));
+      });
     }
   }, {
-    key: "getDocs",
-    value: function getDocs() {
-      return this.getResource('docs', 'https://raw.githubusercontent.com/rdfinn/genome-properties/master/docs/index.rst', this.markup2html);
+    key: "getFromGithubAndMarkup2HTML",
+    value: function getFromGithubAndMarkup2HTML(path) {
+      return this.getResource(path, "" + this.github + path, this.markup2html);
+    }
+  }, {
+    key: "getBrowseTabs",
+    value: function getBrowseTabs() {
+      var resource = {
+        "#pathways": '/docs/_stats/stats.PATHWAY',
+        "#metapaths": '/docs/_stats/stats.METAPATH',
+        "#systems": '/docs/_stats/stats.SYSTEM',
+        "#guilds": '/docs/_stats/stats.GUILD',
+        "#categories": '/docs/_stats/stats.CATEGORY'
+      };
+
+      var tabs = ['Hierarchy', 'Pathways', 'Metapaths', 'Systems', 'Guilds', 'Categories'];
+      return "\n      <ul class=\"tabs\" data-tabs id=\"browse-tabs\">\n      " + tabs.map(function (tab) {
+        var hash = '#' + tab.toLowerCase();
+        var isActive = hash === location.hash;
+        return "\n          <li class=\"tabs-title " + (isActive ? 'is-active' : '') + "\" >\n            <a " + (isActive ? 'aria-selected="true"' : '') + " href=\"" + hash + "\">" + tab + "</a>\n          </li>";
+      }).join('') + "\n      </ul>\n      <br/>\n      " + (location.hash === '#hierarchy' ? this.getProps() : this.getResource(location.hash, "" + this.github + resource[location.hash], this.renderStatsFile)) + "\n    ";
+    }
+  }, {
+    key: "renderStatsFile",
+    value: function renderStatsFile(txt) {
+      return "\n    <div id=\"content-browse-tab\">\n      <ul>\n        " + txt.split('\n').map(function (line) {
+        if (line.trim() === "") return "";
+        var gp = line.split('\t');
+        return "\n            <li>\n              <a href=\"#" + gp[0] + "\">" + gp[0] + "</a>: " + gp[1] + "\n            </li>";
+      }).join('') + "\n      </ul>\n    </div>";
     }
   }, {
     key: "getProps",
     value: function getProps() {
-      var _this6 = this;
+      var _this7 = this;
 
       return this.getResource('props', 'files/gp.dag2.txt', function (txt) {
-        return '<h1>Hierarchy</h1>' + _this6.renderGenPropHierarchy(parseGenPropHierarchy(txt)['GenProp0065']);
+        return _this7.renderGenPropHierarchy(parseGenPropHierarchy(txt)['GenProp0065']);
         // return `<pre>${JSON.stringify(parseGenPropHierarchy(txt)['GenProp0065'], null, ' ')}</pre>`;
       });
     }
