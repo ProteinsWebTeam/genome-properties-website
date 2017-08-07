@@ -3257,14 +3257,6 @@ var GenomePropertiesWebsite = function () {
     value: function loadContent() {
       var pageRequiredToChange = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 
-      var resource = {
-        "#about": '/docs/background.rst',
-        "#calculating": '/docs/calculating.rst',
-        "#docs": '/docs/index.rst',
-        "#funding": '/docs/funding.rst',
-        "#contributing": 'docs/contributing.rst',
-        "#contact": 'docs/contact.rst'
-      };
       switch (location.hash) {
         case "#home":case "":
           this.container.innerHTML = this.getHome();
@@ -3275,7 +3267,7 @@ var GenomePropertiesWebsite = function () {
         case "#funding":
         case "#contributing":
         case "#contact":
-          this.container.innerHTML = this.getFromGithubAndMarkup2HTML(resource[location.hash]);
+          this.container.innerHTML = this.getAboutTabs();
           break;
         case '#browse':
         case '#hierarchy':
@@ -3288,24 +3280,7 @@ var GenomePropertiesWebsite = function () {
           break;
         case "#viewer":
           this.container.innerHTML = this.getViewerHTML();
-          var d3 = gpv.d3,
-              GenomePropertiesViewer = gpv.GenomePropertiesViewer,
-              viewer = new GenomePropertiesViewer({
-            element_selector: "#gp-viewer",
-            controller_element_selector: "#gp-selector",
-            server: "http://www.ebi.ac.uk/~gsalazar/genome_property.php?org=",
-            hierarchy_path: "./files/gp.dag.txt",
-            whitelist_path: "https://raw.githubusercontent.com/ProteinsWebTeam/genome-properties-viewer/master/test-files/gp_white_list.json",
-            server_tax: "./files/taxonomy.json",
-            height: 700
-          });
-          window.viewer = viewer;
-          d3.select(".minimise").on("click", function (d, i, c) {
-            var on = d3.select(c[i]).classed("on");
-            d3.selectAll(".top-controllers>div").style("max-height", on ? "0px" : "500px").style("overflow", on ? null : "hidden").transition(200).style("max-height", on ? "500px" : "0px").style("opacity", on ? 1 : 0);
-            d3.selectAll(".top-controllers").transition(200).style("padding", on ? "5px" : "0px");
-            d3.select(c[i]).classed("on", !on);
-          });
+          this.loadViewer();
           break;
         default:
           if (location.hash.match(/^#GenProp\d{4}$/)) {
@@ -3407,6 +3382,28 @@ var GenomePropertiesWebsite = function () {
       return "\n      <div class=\"container\">\n        <div class=\"top-block\">\n            <div id=\"gp-controllers\" class=\"top-controllers\">\n                <div>\n                    <header>Taxonomy Options</header>\n                    <ul>\n                        <li><label for=\"tax-search\">Search:</label>\n                            <input type=\"text\" id=\"tax-search\">\n                        </li>\n                        <li>\n                            <label for=\"newfile\">Upload File: </label>\n                            <input type=\"file\" id=\"newfile\"/>\n                        </li>\n                        <li><label for=\"tax_label\">Labels:</label>\n                            <select id=\"tax_label\">\n                                <option value=\"name\">Species</option>\n                                <option value=\"id\">Tax ID</option>\n                                <option value=\"both\">Both</option>\n                            </select>\n                        </li>\n\n                    </ul>\n                </div>\n                <div>\n                    <header>Genome Properties Options</header>\n                    <ul>\n                        <li><label for=\"gp-selector\">Top level category:</label>\n                            <div id=\"gp-selector\" class=\"selector\"></div>\n                        </li>\n                        <li><label for=\"gp-filter\">Filter:</label>\n                            <input type=\"text\" id=\"gp-filter\">\n                        </li>\n                        <li><label for=\"gp_label\">Label:</label>\n                            <select id=\"gp_label\">\n                                <option value=\"name\">Name</option>\n                                <option value=\"id\">ID</option>\n                                <option value=\"both\">Both</option>\n                            </select>\n                        </li>\n                    </ul>\n                </div>\n                <div class=\"gp-legends\">\n                    <header>Legends</header>\n                </div>\n                <a class=\"minimise\"></a>\n            </div>\n        </div>\n        <div id=\"gp-viewer\"></div>\n        <div class=\"info-tooltip\"></div>\n    </div>";
     }
   }, {
+    key: "loadViewer",
+    value: function loadViewer() {
+      var d3 = gpv.d3,
+          GenomePropertiesViewer = gpv.GenomePropertiesViewer,
+          viewer = new GenomePropertiesViewer({
+        element_selector: "#gp-viewer",
+        controller_element_selector: "#gp-selector",
+        server: "http://www.ebi.ac.uk/~gsalazar/genome_property.php?org=",
+        hierarchy_path: "./files/gp.dag.txt",
+        whitelist_path: "https://raw.githubusercontent.com/ProteinsWebTeam/genome-properties-viewer/master/test-files/gp_white_list.json",
+        server_tax: "./files/taxonomy.json",
+        height: 700
+      });
+      window.viewer = viewer;
+      d3.select(".minimise").on("click", function (d, i, c) {
+        var on = d3.select(c[i]).classed("on");
+        d3.selectAll(".top-controllers>div").style("max-height", on ? "0px" : "500px").style("overflow", on ? null : "hidden").transition(200).style("max-height", on ? "500px" : "0px").style("opacity", on ? 1 : 0);
+        d3.selectAll(".top-controllers").transition(200).style("padding", on ? "5px" : "0px");
+        d3.select(c[i]).classed("on", !on);
+      });
+    }
+  }, {
     key: "getGenProp",
     value: function getGenProp(acc) {
       var _this5 = this;
@@ -3422,9 +3419,18 @@ var GenomePropertiesWebsite = function () {
       return this.getResource('home', this.github + "/docs/landing.rst", this.markup2html.bind(this));
     }
   }, {
-    key: "getFromGithubAndMarkup2HTML",
-    value: function getFromGithubAndMarkup2HTML(path) {
-      return this.getResource(path, "" + this.github + path, this.markup2html.bind(this));
+    key: "getAboutTabs",
+    value: function getAboutTabs() {
+      var resource = {
+        "#about": '/docs/background.rst',
+        "#calculating": '/docs/calculating.rst',
+        "#docs": '/docs/index.rst',
+        "#funding": '/docs/funding.rst',
+        "#contributing": 'docs/contributing.rst',
+        "#contact": 'docs/contact.rst'
+      };
+      var tabs = ['About', 'Calculating', 'Docs', 'Funding', 'Contributing', 'Contact'];
+      return this.getContentTabs(resource, tabs, this.markup2html.bind(this));
     }
   }, {
     key: "getBrowseTabs",
@@ -3438,11 +3444,16 @@ var GenomePropertiesWebsite = function () {
       };
 
       var tabs = ['Hierarchy', 'Pathways', 'Metapaths', 'Systems', 'Guilds', 'Categories'];
+      return this.getContentTabs(resource, tabs, this.renderStatsFile);
+    }
+  }, {
+    key: "getContentTabs",
+    value: function getContentTabs(resource, tabs, renderer) {
       return "\n      <ul class=\"tabs\" data-tabs id=\"browse-tabs\">\n      " + tabs.map(function (tab) {
         var hash = '#' + tab.toLowerCase();
         var isActive = hash === location.hash;
         return "\n          <li class=\"tabs-title " + (isActive ? 'is-active' : '') + "\" >\n            <a " + (isActive ? 'aria-selected="true"' : '') + " href=\"" + hash + "\">" + tab + "</a>\n          </li>";
-      }).join('') + "\n      </ul>\n      <br/>\n      " + (location.hash === '#hierarchy' || location.hash === '#browse' ? this.getProps() : this.getResource(location.hash, "" + this.github + resource[location.hash], this.renderStatsFile)) + "\n    ";
+      }).join('') + "\n      </ul>\n      <br/>\n      " + (location.hash === '#hierarchy' || location.hash === '#browse' ? this.getProps() : this.getResource(location.hash, "" + this.github + resource[location.hash], renderer)) + "\n    ";
     }
   }, {
     key: "renderStatsFile",
@@ -3460,7 +3471,6 @@ var GenomePropertiesWebsite = function () {
 
       return this.getResource('props', 'files/gp.dag2.txt', function (txt) {
         return _this6.renderGenPropHierarchy(parseGenPropHierarchy(txt)['GenProp0065']);
-        // return `<pre>${JSON.stringify(parseGenPropHierarchy(txt)['GenProp0065'], null, ' ')}</pre>`;
       });
     }
   }]);

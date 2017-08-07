@@ -64,14 +64,6 @@ class GenomePropertiesWebsite {
     return renderer.markup2html(txt);
   }
   loadContent(pageRequiredToChange=false) {
-    const resource = {
-      "#about": '/docs/background.rst',
-      "#calculating": '/docs/calculating.rst',
-      "#docs": '/docs/index.rst',
-      "#funding": '/docs/funding.rst',
-      "#contributing": 'docs/contributing.rst',
-      "#contact": 'docs/contact.rst',
-    };
     switch (location.hash) {
       case "#home": case "":
         this.container.innerHTML = this.getHome();
@@ -82,7 +74,7 @@ class GenomePropertiesWebsite {
       case "#funding":
       case "#contributing":
       case "#contact":
-        this.container.innerHTML = this.getFromGithubAndMarkup2HTML(resource[location.hash]);
+        this.container.innerHTML = this.getAboutTabs();
         break;
       case '#browse':
       case '#hierarchy':
@@ -95,29 +87,7 @@ class GenomePropertiesWebsite {
         break;
       case "#viewer":
         this.container.innerHTML = this.getViewerHTML();
-        var d3 = gpv.d3,
-                GenomePropertiesViewer = gpv.GenomePropertiesViewer,
-                viewer = new GenomePropertiesViewer({
-                    element_selector: "#gp-viewer",
-                    controller_element_selector: "#gp-selector",
-                    server: "http://www.ebi.ac.uk/~gsalazar/genome_property.php?org=",
-                    hierarchy_path: "./files/gp.dag.txt",
-                    whitelist_path: "https://raw.githubusercontent.com/ProteinsWebTeam/genome-properties-viewer/master/test-files/gp_white_list.json",
-                    server_tax: "./files/taxonomy.json",
-                    height: 700
-                });
-          window.viewer = viewer;
-          d3.select(".minimise").on("click",(d,i,c)=>{
-              const on = d3.select(c[i]).classed("on");
-              d3.selectAll(".top-controllers>div")
-                      .style("max-height", on?"0px":"500px")
-                      .style("overflow", on?null:"hidden")
-                      .transition(200)
-                      .style("max-height", on?"500px":"0px")
-                      .style("opacity", on?1:0);
-              d3.selectAll(".top-controllers").transition(200).style("padding", on?"5px":"0px");
-              d3.select(c[i]).classed("on", !on);
-          });
+        this.loadViewer();
         break;
       default:
         if (location.hash.match(/^#GenProp\d{4}$/)){
@@ -137,7 +107,6 @@ class GenomePropertiesWebsite {
       </section>
     </div>
     `;
-
   }
   getResource(key, url, loader){
     if (key in this.cache)
@@ -340,6 +309,31 @@ class GenomePropertiesWebsite {
         <div class="info-tooltip"></div>
     </div>`
   }
+  loadViewer(){
+    var d3 = gpv.d3,
+            GenomePropertiesViewer = gpv.GenomePropertiesViewer,
+            viewer = new GenomePropertiesViewer({
+                element_selector: "#gp-viewer",
+                controller_element_selector: "#gp-selector",
+                server: "http://www.ebi.ac.uk/~gsalazar/genome_property.php?org=",
+                hierarchy_path: "./files/gp.dag.txt",
+                whitelist_path: "https://raw.githubusercontent.com/ProteinsWebTeam/genome-properties-viewer/master/test-files/gp_white_list.json",
+                server_tax: "./files/taxonomy.json",
+                height: 700
+            });
+      window.viewer = viewer;
+      d3.select(".minimise").on("click",(d,i,c)=>{
+          const on = d3.select(c[i]).classed("on");
+          d3.selectAll(".top-controllers>div")
+                  .style("max-height", on?"0px":"500px")
+                  .style("overflow", on?null:"hidden")
+                  .transition(200)
+                  .style("max-height", on?"500px":"0px")
+                  .style("opacity", on?1:0);
+          d3.selectAll(".top-controllers").transition(200).style("padding", on?"5px":"0px");
+          d3.select(c[i]).classed("on", !on);
+      });
+  }
   getGenProp(acc){
     const url = `${this.github}/data/${acc}/DESC`
     return this.getResource(acc, url, txt => this.renderGenProp(parseGenProp(txt)))
@@ -347,8 +341,20 @@ class GenomePropertiesWebsite {
   getHome(){
     return this.getResource('home', `${this.github}/docs/landing.rst`,this.markup2html.bind(this));
   }
-  getFromGithubAndMarkup2HTML(path){
-    return this.getResource(path, `${this.github}${path}`, this.markup2html.bind(this))
+  getAboutTabs() {
+    const resource = {
+      "#about": '/docs/background.rst',
+      "#calculating": '/docs/calculating.rst',
+      "#docs": '/docs/index.rst',
+      "#funding": '/docs/funding.rst',
+      "#contributing": 'docs/contributing.rst',
+      "#contact": 'docs/contact.rst',
+    };
+    const tabs = [
+      'About', 'Calculating', 'Docs',
+      'Funding', 'Contributing', 'Contact'
+    ];
+    return this.getContentTabs(resource,tabs,this.markup2html.bind(this));
   }
   getBrowseTabs() {
     const resource = {
@@ -363,6 +369,9 @@ class GenomePropertiesWebsite {
       'Hierarchy', 'Pathways', 'Metapaths',
       'Systems', 'Guilds', 'Categories'
     ];
+    return this.getContentTabs(resource,tabs,this.renderStatsFile);
+  }
+  getContentTabs(resource, tabs, renderer) {
     return `
       <ul class="tabs" data-tabs id="browse-tabs">
       ${tabs.map(tab => {
@@ -382,7 +391,7 @@ class GenomePropertiesWebsite {
           this.getResource(
             location.hash,
             `${this.github}${resource[location.hash]}`,
-            this.renderStatsFile
+            renderer
           )
         }
     `
@@ -405,7 +414,6 @@ class GenomePropertiesWebsite {
   getProps(){
     return this.getResource('props', 'files/gp.dag2.txt', txt => {
       return this.renderGenPropHierarchy(parseGenPropHierarchy(txt)['GenProp0065'])
-      // return `<pre>${JSON.stringify(parseGenPropHierarchy(txt)['GenProp0065'], null, ' ')}</pre>`;
     })
   }
 }
