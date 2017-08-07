@@ -1,6 +1,105 @@
 var GenomePropertiesWebsite = (function () {
 'use strict';
 
+var mainKeys = {
+  AC: 'accession',
+  DE: 'name',
+  TP: 'type',
+  TH: 'threshold'
+};
+var refKeys = {
+  RM: 'PMID',
+  RT: 'title',
+  RA: 'author',
+  RL: 'citation'
+};
+var stepKeys = {
+  ID: 'id',
+  DN: 'name',
+  RQ: 'requires'
+};
+var parseGenProp = function parseGenProp(txt) {
+  var property = {
+    references: [],
+    databases: [],
+    steps: [],
+    description: '',
+    notes: ''
+  };
+  var currentRef = null;
+  var currentDB = null;
+  var currentStep = null;
+  var currentEV = null;
+  txt.split('\n').forEach(function (line) {
+    var key = line.substr(0, 2);
+    var value = line.substr(3).trim();
+    if (key in mainKeys) property[mainKeys[key]] = value;
+
+    // References
+    if (key === 'RN') {
+      currentRef = { number: Number(value.replace('[', '').replace(']', '')) };
+      property.references.push(currentRef);
+    }
+    if (key in refKeys && currentRef) currentRef[refKeys[key]] = value;
+
+    // Databases
+    if (key === 'DC') {
+      currentDB = { title: value };
+      property.databases.push(currentDB);
+    }
+    if (key === 'DR' && currentDB) currentDB['link'] = value;
+
+    // Description
+    if (key === 'CC') property.description += value + ' ';
+
+    // Notes
+    if (key === '**') property.notes += value + ' ';
+
+    // Steps
+    if (key === 'SN') {
+      currentStep = {
+        number: Number(value),
+        evidence_list: []
+      };
+      property.steps.push(currentStep);
+    }
+    if (key in stepKeys && currentStep) currentStep[stepKeys[key]] = value;
+    // Evidence
+    if (key === 'EV' && currentStep) {
+      currentEV = { evidence: value };
+      currentStep.evidence_list.push(currentEV);
+    }
+    if (key === 'TG' && currentStep && currentEV) currentEV['go'] = value;
+  });
+  return property;
+  // console.log(property);
+  // return `<pre>${JSON.stringify(property, null, '  ')}</pre>`;
+};
+
+var parseGenPropHierarchy = function parseGenPropHierarchy(txt) {
+  var ignore = ['GenProp0068'];
+  var hierarchy = {};
+  txt.split('\n').forEach(function (line) {
+    var parts = line.split('\t');
+    if (parts[0].trim() !== '' && ignore.indexOf(parts[0]) == -1 && ignore.indexOf(parts[2]) == -1) {
+      if (!(parts[0] in hierarchy)) hierarchy[parts[0]] = {
+        id: parts[0],
+        name: parts[1],
+        // parents: [],
+        children: []
+      };
+      if (!(parts[2] in hierarchy)) hierarchy[parts[2]] = {
+        id: parts[2],
+        name: parts[3],
+        // parents: [],
+        children: []
+      };
+      hierarchy[parts[0]].children.push(hierarchy[parts[2]]);
+    }
+  });
+  return hierarchy;
+};
+
 var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
 
@@ -2942,104 +3041,144 @@ if ('object' !== 'undefined' && module.exports) {
 
 });
 
-var mainKeys = {
-  AC: 'accession',
-  DE: 'name',
-  TP: 'type',
-  TH: 'threshold'
-};
-var refKeys = {
-  RM: 'PMID',
-  RT: 'title',
-  RA: 'author',
-  RL: 'citation'
-};
-var stepKeys = {
-  ID: 'id',
-  DN: 'name',
-  RQ: 'requires'
-};
-var parseGenProp = function parseGenProp(txt) {
-  var property = {
-    references: [],
-    databases: [],
-    steps: [],
-    description: '',
-    notes: ''
-  };
-  var currentRef = null;
-  var currentDB = null;
-  var currentStep = null;
-  var currentEV = null;
-  txt.split('\n').forEach(function (line) {
-    var key = line.substr(0, 2);
-    var value = line.substr(3).trim();
-    if (key in mainKeys) property[mainKeys[key]] = value;
+var _createClass$1 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-    // References
-    if (key === 'RN') {
-      currentRef = { number: Number(value.replace('[', '').replace(']', '')) };
-      property.references.push(currentRef);
+function _classCallCheck$1(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var blockType = {
+  SUBSTITUTION: 1,
+  OTHER: -1
+};
+
+var RstRenderer = function () {
+  function RstRenderer(server) {
+    _classCallCheck$1(this, RstRenderer);
+
+    this.converter = new showdown.Converter();
+    this.server = server;
+    this.substitutions = {};
+  }
+
+  _createClass$1(RstRenderer, [{
+    key: 'parseBlock',
+    value: function parseBlock(block) {
+      var obj = {};
+      var lines = block.split('\n');
+      var parts = lines[0].split('|');
+      if (parts.length == 3 && parts[0].trim() === '..') {
+        obj.type = blockType.SUBSTITUTION;
+        obj.key = parts[1];
+        var value = parts[2].split('::');
+        obj.value = {
+          type: value[0].trim(),
+          value: value[1].trim(),
+          attributes: {}
+        };
+      } else {
+        obj.type = blockType.OTHER;
+        obj.value = lines[0].substr(3);
+      }
+      for (var i = 1; i < lines.length; i++) {
+        if (obj.type === blockType.SUBSTITUTION) {
+          var attr = lines[i].split(':');
+          if (attr.length > 2 && attr[1].trim() !== "") {
+            obj.value.attributes[attr[1]] = attr.slice(2).join(':');
+          }
+        } else {
+          obj.value += lines[i].trim();
+        }
+      }
+      return obj;
     }
-    if (key in refKeys && currentRef) currentRef[refKeys[key]] = value;
+  }, {
+    key: 'extractBlocks',
+    value: function extractBlocks(txt) {
+      var _this = this;
 
-    // Databases
-    if (key === 'DC') {
-      currentDB = { title: value };
-      property.databases.push(currentDB);
+      var block = '';
+      var text = txt.split('\n').map(function (line) {
+        if (line.indexOf('..') === 0) {
+          block += line + '\n';
+          return '';
+        }
+        if (block !== '') {
+          if (line.indexOf('  ') === 0 && line.trim() !== '') {
+            block += line + '\n';
+            return '';
+          } else {
+            var objBlock = _this.parseBlock(block);
+            if (objBlock.type === blockType.SUBSTITUTION) {
+              _this.substitutions[objBlock.key] = objBlock;
+            }
+            block = '';
+          }
+        }
+        return line;
+      }).join('\n');
+
+      return text;
     }
-    if (key === 'DR' && currentDB) currentDB['link'] = value;
+  }, {
+    key: 'applySubstitutions',
+    value: function applySubstitutions(txt) {
+      var _this2 = this;
 
-    // Description
-    if (key === 'CC') property.description += value + ' ';
+      var newText = txt;
 
-    // Notes
-    if (key === '**') property.notes += value + ' ';
-
-    // Steps
-    if (key === 'SN') {
-      currentStep = {
-        number: Number(value),
-        evidence_list: []
+      var _loop = function _loop(key) {
+        var value = _this2.substitutions[key].value;
+        var replacement = '';
+        if (value.type == "image") {
+          replacement = '<img src="' + _this2.server + '/docs/' + value.value + '" ' + Object.keys(value.attributes).map(function (k) {
+            return k + ('="' + value.attributes[k] + '"');
+          }).join("") + '/>';
+        } else {
+          replacement = value.value;
+        }
+        console.log('|' + key + '|', replacement);
+        newText = newText.replace('|' + key + '|', replacement);
       };
-      property.steps.push(currentStep);
-    }
-    if (key in stepKeys && currentStep) currentStep[stepKeys[key]] = value;
-    // Evidence
-    if (key === 'EV' && currentStep) {
-      currentEV = { evidence: value };
-      currentStep.evidence_list.push(currentEV);
-    }
-    if (key === 'TG' && currentStep && currentEV) currentEV['go'] = value;
-  });
-  return property;
-  // console.log(property);
-  // return `<pre>${JSON.stringify(property, null, '  ')}</pre>`;
-};
 
-var parseGenPropHierarchy = function parseGenPropHierarchy(txt) {
-  var ignore = ['GenProp0068'];
-  var hierarchy = {};
-  txt.split('\n').forEach(function (line) {
-    var parts = line.split('\t');
-    if (parts[0].trim() !== '' && ignore.indexOf(parts[0]) == -1 && ignore.indexOf(parts[2]) == -1) {
-      if (!(parts[0] in hierarchy)) hierarchy[parts[0]] = {
-        id: parts[0],
-        name: parts[1],
-        // parents: [],
-        children: []
-      };
-      if (!(parts[2] in hierarchy)) hierarchy[parts[2]] = {
-        id: parts[2],
-        name: parts[3],
-        // parents: [],
-        children: []
-      };
-      hierarchy[parts[0]].children.push(hierarchy[parts[2]]);
+      for (var key in this.substitutions) {
+        _loop(key);
+      }
+      return newText;
     }
-  });
-  return hierarchy;
-};
+  }, {
+    key: 'toMDTables',
+    value: function toMDTables(txt) {
+      var onTable = false;
+      return txt.split('\n').map(function (l) {
+        var isRow = l.indexOf('+--') === 0;
+        var partOfTable = l.indexOf('|') === 0;
+        if (!onTable && isRow) {
+          onTable = true;
+          return '<table>';
+        }
+        if (onTable && isRow) return '';
+        if (onTable && !isRow && partOfTable) {
+          return '<tr><td>' + l.split('|').slice(1, -1).join('</td><td>') + '</td></tr>';
+        }
+        if (onTable && !isRow && !partOfTable) {
+          onTable = false;
+          return '</table>';
+        }
+        return l;
+      }).join('\n');
+    }
+  }, {
+    key: 'markup2html',
+    value: function markup2html(txt) {
+      var text = txt.replace("[BUTTON_BROWSE]", '<a href="#browse" class="button">Browse</a>').replace("[BUTTON_VIEWER]", '<a href="#viewer" class="button">Viewer</a>');
+      text = this.extractBlocks(text);
+      text = this.applySubstitutions(text);
+      text = this.toMDTables(text);
+      return '<br/>' + this.converter.makeHtml(text);
+    }
+  }]);
+
+  return RstRenderer;
+}();
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -3108,6 +3247,12 @@ var GenomePropertiesWebsite = function () {
   }
 
   _createClass(GenomePropertiesWebsite, [{
+    key: "markup2html",
+    value: function markup2html(txt) {
+      var renderer = new RstRenderer(this.github);
+      return renderer.markup2html(txt);
+    }
+  }, {
     key: "loadContent",
     value: function loadContent() {
       var pageRequiredToChange = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
@@ -3132,6 +3277,7 @@ var GenomePropertiesWebsite = function () {
         case "#contact":
           this.container.innerHTML = this.getFromGithubAndMarkup2HTML(resource[location.hash]);
           break;
+        case '#browse':
         case '#hierarchy':
         case '#pathways':
         case '#metapaths':
@@ -3174,12 +3320,6 @@ var GenomePropertiesWebsite = function () {
     key: "embbedInSection",
     value: function embbedInSection(html) {
       return "\n    <div class=\"columns\">\n      <section>\n        " + html + "\n      </section>\n    </div>\n    ";
-    }
-  }, {
-    key: "markup2html",
-    value: function markup2html(txt) {
-      var converter = new showdown.Converter();
-      return converter.makeHtml(txt);
     }
   }, {
     key: "getResource",
@@ -3279,16 +3419,12 @@ var GenomePropertiesWebsite = function () {
   }, {
     key: "getHome",
     value: function getHome() {
-      var _this6 = this;
-
-      return this.getResource('home', this.github + "/docs/landing.rst", function (txt) {
-        return _this6.markup2html('<br/>' + txt.replace("[BUTTON_BROWSE]", '<a href="#browse" class="button">Browse</a>').replace("[BUTTON_VIEWER]", '<a href="#viewer" class="button">Viewer</a>'));
-      });
+      return this.getResource('home', this.github + "/docs/landing.rst", this.markup2html.bind(this));
     }
   }, {
     key: "getFromGithubAndMarkup2HTML",
     value: function getFromGithubAndMarkup2HTML(path) {
-      return this.getResource(path, "" + this.github + path, this.markup2html);
+      return this.getResource(path, "" + this.github + path, this.markup2html.bind(this));
     }
   }, {
     key: "getBrowseTabs",
@@ -3306,7 +3442,7 @@ var GenomePropertiesWebsite = function () {
         var hash = '#' + tab.toLowerCase();
         var isActive = hash === location.hash;
         return "\n          <li class=\"tabs-title " + (isActive ? 'is-active' : '') + "\" >\n            <a " + (isActive ? 'aria-selected="true"' : '') + " href=\"" + hash + "\">" + tab + "</a>\n          </li>";
-      }).join('') + "\n      </ul>\n      <br/>\n      " + (location.hash === '#hierarchy' ? this.getProps() : this.getResource(location.hash, "" + this.github + resource[location.hash], this.renderStatsFile)) + "\n    ";
+      }).join('') + "\n      </ul>\n      <br/>\n      " + (location.hash === '#hierarchy' || location.hash === '#browse' ? this.getProps() : this.getResource(location.hash, "" + this.github + resource[location.hash], this.renderStatsFile)) + "\n    ";
     }
   }, {
     key: "renderStatsFile",
@@ -3320,10 +3456,10 @@ var GenomePropertiesWebsite = function () {
   }, {
     key: "getProps",
     value: function getProps() {
-      var _this7 = this;
+      var _this6 = this;
 
       return this.getResource('props', 'files/gp.dag2.txt', function (txt) {
-        return _this7.renderGenPropHierarchy(parseGenPropHierarchy(txt)['GenProp0065']);
+        return _this6.renderGenPropHierarchy(parseGenPropHierarchy(txt)['GenProp0065']);
         // return `<pre>${JSON.stringify(parseGenPropHierarchy(txt)['GenProp0065'], null, ' ')}</pre>`;
       });
     }

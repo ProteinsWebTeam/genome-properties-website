@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "genome-properties-viewer": "git+https://github.com/ProteinsWebTeam/genome-properties-viewer.git",
+    "rst2mdown": "^0.1.0",
     "showdown": "^1.7.1"
   }
 }

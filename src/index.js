@@ -1,6 +1,6 @@
-import showdown from "showdown";
 import parseGenProp from "./genprop-parser";
 import parseGenPropHierarchy from "./genprop-hierarchy-parser";
+import {RstRenderer} from "./rst-renderer";
 
 class GenomePropertiesWebsite {
   constructor(selector) {
@@ -59,7 +59,10 @@ class GenomePropertiesWebsite {
       }
     }
   }
-
+  markup2html (txt) {
+    const renderer = new RstRenderer(this.github);
+    return renderer.markup2html(txt);
+  }
   loadContent(pageRequiredToChange=false) {
     const resource = {
       "#about": '/docs/background.rst',
@@ -81,6 +84,7 @@ class GenomePropertiesWebsite {
       case "#contact":
         this.container.innerHTML = this.getFromGithubAndMarkup2HTML(resource[location.hash]);
         break;
+      case '#browse':
       case '#hierarchy':
       case '#pathways':
       case '#metapaths':
@@ -134,10 +138,6 @@ class GenomePropertiesWebsite {
     </div>
     `;
 
-  }
-  markup2html(txt) {
-    const converter = new showdown.Converter();
-    return converter.makeHtml(txt);
   }
   getResource(key, url, loader){
     if (key in this.cache)
@@ -345,18 +345,10 @@ class GenomePropertiesWebsite {
     return this.getResource(acc, url, txt => this.renderGenProp(parseGenProp(txt)))
   }
   getHome(){
-    return this.getResource('home', `${this.github}/docs/landing.rst`,
-    (txt) => {
-      return this.markup2html(
-        '<br/>' + txt
-          .replace("[BUTTON_BROWSE]", '<a href="#browse" class="button">Browse</a>')
-          .replace("[BUTTON_VIEWER]", '<a href="#viewer" class="button">Viewer</a>')
-      );
-    }
-  );
+    return this.getResource('home', `${this.github}/docs/landing.rst`,this.markup2html.bind(this));
   }
   getFromGithubAndMarkup2HTML(path){
-    return this.getResource(path, `${this.github}${path}`, this.markup2html)
+    return this.getResource(path, `${this.github}${path}`, this.markup2html.bind(this))
   }
   getBrowseTabs() {
     const resource = {
@@ -385,7 +377,7 @@ class GenomePropertiesWebsite {
       </ul>
       <br/>
       ${
-        (location.hash==='#hierarchy') ?
+        (location.hash==='#hierarchy' || location.hash==='#browse') ?
           this.getProps() :
           this.getResource(
             location.hash,
