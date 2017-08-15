@@ -3393,7 +3393,7 @@ var GenomePropertiesWebsite = function () {
         hierarchy_path: "./files/gp.dag.txt",
         whitelist_path: "https://raw.githubusercontent.com/ProteinsWebTeam/genome-properties-viewer/master/test-files/gp_white_list.json",
         server_tax: "./files/taxonomy.json",
-        height: 700
+        height: 400
       });
       window.viewer = viewer;
       d3.select(".minimise").on("click", function (d, i, c) {
@@ -3426,8 +3426,8 @@ var GenomePropertiesWebsite = function () {
         "#calculating": '/docs/calculating.rst',
         "#docs": '/docs/index.rst',
         "#funding": '/docs/funding.rst',
-        "#contributing": 'docs/contributing.rst',
-        "#contact": 'docs/contact.rst'
+        "#contributing": '/docs/contributing.rst',
+        "#contact": '/docs/contact.rst'
       };
       var tabs = ['About', 'Calculating', 'Docs', 'Funding', 'Contributing', 'Contact'];
       return this.getContentTabs(resource, tabs, this.markup2html.bind(this));

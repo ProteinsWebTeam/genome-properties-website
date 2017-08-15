@@ -41,7 +41,10 @@ g.node.loaded {
     cursor: ew-resize;
     opacity:1;
 }
-
+g.node.loaded:hover .node-type{
+    fill: white;
+    cursor: no-drop;
+}
 .node--internal text {
     text-shadow: 0 1px 0 #fff, 0 -1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff;
     opacity:0.1;
@@ -66,11 +69,18 @@ g.node.loaded {
     stroke-width: 3px;
     opacity: 0;
 }
-.height-sizer:hover {
-    stroke: lightblue;
+.height-dragger{
     cursor: ns-resize;
     opacity: 0.7;
 }
+.height-dragger:hover{
+    opacity: 1;
+}
+.height-dragger:hover .height-sizer {
+    stroke: lightblue;
+    opacity: 0.7;
+}
+
 .selector a{
     color:#3c67c1;
     cursor: pointer;
@@ -264,11 +274,14 @@ div.container .top-block .minimise.on::after {
 .color.filter{
     box-shadow: 0 0 3px rgb(173, 73, 74);
 }
-.gpv-scrollbar rect{
+.gpv-scrollbar rect.gpv-scrollbar-handle{
     fill: rgba(180,180,180,0.4);
     cursor: ns-resize;
 }
-.gpv-scrollbar rect:hover{
+.gpv-scrollbar rect.gpv-scrollbar-bg{
+    fill: rgba(230,230,230,0.4);
+}
+.gpv-scrollbar rect.gpv-scrollbar-handle:hover{
     fill: rgba(180,180,180,0.7);
 }
 
