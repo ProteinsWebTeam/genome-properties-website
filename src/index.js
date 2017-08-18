@@ -262,35 +262,39 @@ class GenomePropertiesWebsite {
         <div class="top-block">
             <div id="gp-controllers" class="top-controllers">
                 <div>
-                    <header>Taxonomy Options</header>
+                    <header>Load Genome Properties</header>
                     <ul>
-                        <li><label for="tax-search">Search:</label>
+                        <li><label for="tax-search">From Taxonomy:</label>
                             <input type="text" id="tax-search">
                         </li>
                         <li>
-                            <label for="newfile">Upload File: </label>
+                            <label for="newfile">From a File: </label>
                             <input type="file" id="newfile"/>
                         </li>
-                        <li><label for="tax_label">Labels:</label>
-                            <select id="tax_label">
-                                <option value="name">Species</option>
-                                <option value="id">Tax ID</option>
-                                <option value="both">Both</option>
-                            </select>
-                        </li>
-
                     </ul>
                 </div>
                 <div>
-                    <header>Genome Properties Options</header>
+                    <header>Filter Properties</header>
                     <ul>
-                        <li><label for="gp-selector">Top level category:</label>
+                        <li><label for="gp-selector">By Top level category:</label>
                             <div id="gp-selector" class="selector"></div>
                         </li>
-                        <li><label for="gp-filter">Filter:</label>
+                        <li><label for="gp-filter">by Text:</label>
                             <input type="text" id="gp-filter">
                         </li>
-                        <li><label for="gp_label">Label:</label>
+                    </ul>
+                </div>
+                <div>
+                    <header>Labels</header>
+                    <ul>
+                      <li><label for="tax_label">Species:</label>
+                          <select id="tax_label">
+                              <option value="name">Species</option>
+                              <option value="id">Tax ID</option>
+                              <option value="both">Both</option>
+                          </select>
+                      </li>
+                        <li><label for="gp_label">Properties:</label>
                             <select id="gp_label">
                                 <option value="name">Name</option>
                                 <option value="id">ID</option>
