@@ -76,30 +76,6 @@ var parseGenProp = function parseGenProp(txt) {
   // return `<pre>${JSON.stringify(property, null, '  ')}</pre>`;
 };
 
-var parseGenPropHierarchy = function parseGenPropHierarchy(txt) {
-  var ignore = ['GenProp0068'];
-  var hierarchy = {};
-  txt.split('\n').forEach(function (line) {
-    var parts = line.split('\t');
-    if (parts[0].trim() !== '' && ignore.indexOf(parts[0]) == -1 && ignore.indexOf(parts[2]) == -1) {
-      if (!(parts[0] in hierarchy)) hierarchy[parts[0]] = {
-        id: parts[0],
-        name: parts[1],
-        // parents: [],
-        children: []
-      };
-      if (!(parts[2] in hierarchy)) hierarchy[parts[2]] = {
-        id: parts[2],
-        name: parts[3],
-        // parents: [],
-        children: []
-      };
-      hierarchy[parts[0]].children.push(hierarchy[parts[2]]);
-    }
-  });
-  return hierarchy;
-};
-
 var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
 
@@ -3522,8 +3498,8 @@ var GenomePropertiesWebsite = function () {
     value: function getProps() {
       var _this6 = this;
 
-      return this.getResource('props', 'files/gp.dag2.txt', function (txt) {
-        return _this6.renderGenPropHierarchy(parseGenPropHierarchy(txt)['GenProp0065']);
+      return this.getResource('props', this.github + "/docs/release/hierarchy.json", function (txt) {
+        return _this6.renderGenPropHierarchy(JSON.parse(txt));
       });
     }
   }]);

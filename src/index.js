@@ -1,5 +1,4 @@
 import parseGenProp from "./genprop-parser";
-import parseGenPropHierarchy from "./genprop-hierarchy-parser";
 import {RstRenderer} from "./rst-renderer";
 
 class GenomePropertiesWebsite {
@@ -420,8 +419,8 @@ class GenomePropertiesWebsite {
     </div>`;
   }
   getProps(){
-    return this.getResource('props', 'files/gp.dag2.txt', txt => {
-      return this.renderGenPropHierarchy(parseGenPropHierarchy(txt)['GenProp0065'])
+    return this.getResource('props', `${this.github}/docs/release/hierarchy.json`, txt => {
+      return this.renderGenPropHierarchy(JSON.parse(txt))
     })
   }
 }

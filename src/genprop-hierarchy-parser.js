@@ -1,5 +1,6 @@
+// Not in use. Now we are taking a JSON from github.
 const parseGenPropHierarchy = (txt) => {
-  const ignore = ['GenProp0068']
+  const ignore = ['GenProp0068'];
   const hierarchy = {};
   txt.split('\n').forEach(line => {
     const parts = line.split('\t');
