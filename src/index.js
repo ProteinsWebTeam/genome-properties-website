@@ -60,13 +60,14 @@ class GenomePropertiesWebsite {
     }
   }
   markup2html (txt) {
-    const renderer = new RstRenderer(this.github);
+    const renderer = new RstRenderer(this.github, this);
     return renderer.markup2html(txt);
   }
-  loadContent(pageRequiredToChange=false) {
+  loadContent(pageRequiredToChange=false,key=null) {
+    let content = "";
     switch (location.hash) {
       case "#home": case "":
-        this.container.innerHTML = this.getHome();
+        content = this.getHome();
         break;
       case "#about":
       case "#calculating":
@@ -74,7 +75,7 @@ class GenomePropertiesWebsite {
       case "#funding":
       case "#contributing":
       case "#contact":
-        this.container.innerHTML = this.getAboutTabs();
+        content = this.getAboutTabs();
         break;
       case '#browse':
       case '#hierarchy':
@@ -83,21 +84,24 @@ class GenomePropertiesWebsite {
       case '#systems':
       case '#guilds':
       case '#categories':
-        this.container.innerHTML = this.getBrowseTabs();
+        content = this.getBrowseTabs();
         break;
       case "#viewer":
         this.container.innerHTML = this.getViewerHTML();
         this.loadViewer();
-        break;
+        return;
       default:
         if (location.hash.match(/^#GenProp\d{4}$/)){
-          this.container.innerHTML = this.getGenProp(location.hash.substr(1));
-          return;
-        }
-        if (pageRequiredToChange)
-          this.container.innerHTML = "404: Not found";
-        // console.log("other", location.hash);
+          content = this.getGenProp(location.hash.substr(1));
+        }else if (pageRequiredToChange){
+            content = "404: Not found";
+        }// console.log("other", location.hash);
     }
+    if (key && key.startsWith("INCLUDE_") && key in this.cache){
+      content = content.replace(key, this.markup2html(this.cache[key]));
+      this.cache[location.hash] = content;
+    }
+    this.container.innerHTML = content;
   }
   embbedInSection(html){
     return `
@@ -108,19 +112,18 @@ class GenomePropertiesWebsite {
     </div>
     `;
   }
-  getResource(key, url, loader){
+  getResource(key, url, loader, template_tag=null,embbedInSection=true){
     if (key in this.cache)
       return this.cache[key];
     fetch(url)
       .then(a=>a.text())
       .then(a=>{
         const html = loader(a);
-        this.cache[key] = this.embbedInSection(html);
-        this.loadContent(true);
+        this.cache[key] = embbedInSection ? this.embbedInSection(html): html;
+        this.loadContent(true, key);
       })
       .catch(a=>console.error(a));
-
-    return this.embbedInSection('loading...');
+    return template_tag===null ? this.embbedInSection('loading...') : template_tag;
   }
   renderGenProp(property){
     return `
@@ -319,10 +322,10 @@ class GenomePropertiesWebsite {
             viewer = new GenomePropertiesViewer({
                 element_selector: "#gp-viewer",
                 controller_element_selector: "#gp-selector",
-                server: "http://www.ebi.ac.uk/~gsalazar/genome_property.php?org=",
-                hierarchy_path: "./files/gp.dag.txt",
+                server: `${this.github}/docs/release/GP_calculation/SUMMARY_FILE_`,
+                hierarchy_path: `${this.github}/docs/release/hierarchy.json`,
                 whitelist_path: "https://raw.githubusercontent.com/ProteinsWebTeam/genome-properties-viewer/master/test-files/gp_white_list.json",
-                server_tax: "./files/taxonomy.json",
+                server_tax: `${this.github}/docs/release/taxonomy.json`,
                 height: 400
             });
       window.viewer = viewer;
@@ -343,7 +346,8 @@ class GenomePropertiesWebsite {
     return this.getResource(acc, url, txt => this.renderGenProp(parseGenProp(txt)))
   }
   getHome(){
-    return this.getResource('home', `${this.github}/docs/landing.rst`,this.markup2html.bind(this));
+    // return this.markup2html(text);
+    return this.getResource('#home', `${this.github}/docs/landing.rst?`,this.markup2html.bind(this));
   }
   getAboutTabs() {
     const resource = {

@@ -3047,16 +3047,18 @@ function _classCallCheck$1(instance, Constructor) { if (!(instance instanceof Co
 
 var blockType = {
   SUBSTITUTION: 1,
+  INCLUDE: 2,
   OTHER: -1
 };
 
 var RstRenderer = function () {
-  function RstRenderer(server) {
+  function RstRenderer(server, manager) {
     _classCallCheck$1(this, RstRenderer);
 
     this.converter = new showdown.Converter();
     this.server = server;
     this.substitutions = {};
+    this.manager = manager;
   }
 
   _createClass$1(RstRenderer, [{
@@ -3075,8 +3077,14 @@ var RstRenderer = function () {
           attributes: {}
         };
       } else {
-        obj.type = blockType.OTHER;
-        obj.value = lines[0].substr(3);
+        var parts2 = lines[0].split(' ');
+        if (parts2.length == 3 && parts2[1] === "include::") {
+          obj.type = blockType.INCLUDE;
+          obj.value = parts2[2];
+        } else {
+          obj.type = blockType.OTHER;
+          obj.value = lines[0].substr(3);
+        }
       }
       for (var i = 1; i < lines.length; i++) {
         if (obj.type === blockType.SUBSTITUTION) {
@@ -3107,8 +3115,13 @@ var RstRenderer = function () {
             return '';
           } else {
             var objBlock = _this.parseBlock(block);
-            if (objBlock.type === blockType.SUBSTITUTION) {
-              _this.substitutions[objBlock.key] = objBlock;
+            switch (objBlock.type) {
+              case blockType.SUBSTITUTION:
+                _this.substitutions[objBlock.key] = objBlock;
+                break;
+              case blockType.INCLUDE:
+                return _this.manager.getResource('INCLUDE_' + objBlock.value, _this.server + '/docs/' + objBlock.value, _this.markup2html.bind(_this), 'INCLUDE_' + objBlock.value, false);
+              // return 'INCLUDE: '+objBlock.value;
             }
             block = '';
           }
@@ -3119,31 +3132,58 @@ var RstRenderer = function () {
       return text;
     }
   }, {
+    key: 'renderHTMLAtrributes',
+    value: function renderHTMLAtrributes(list) {
+      var ignore = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+
+      return Object.keys(list).filter(function (k) {
+        return ignore.indexOf(k) === -1;
+      }).map(function (k) {
+        return k + ('="' + list[k] + '"');
+      }).join("");
+    }
+  }, {
     key: 'applySubstitutions',
     value: function applySubstitutions(txt) {
-      var _this2 = this;
-
       var newText = txt;
-
-      var _loop = function _loop(key) {
-        var value = _this2.substitutions[key].value;
+      for (var key in this.substitutions) {
+        var value = this.substitutions[key].value;
         var replacement = '';
         if (value.type == "image") {
-          replacement = '<img src="' + _this2.server + '/docs/' + value.value + '" ' + Object.keys(value.attributes).map(function (k) {
-            return k + ('="' + value.attributes[k] + '"');
-          }).join("") + '/>';
+          replacement = '<img src="' + this.server + '/docs/' + value.value + '" ' + this.renderHTMLAtrributes(value.attributes, ['alt', 'target']) + '/>';
+          if ("target" in value.attributes) replacement = '<a href="' + value.attributes.target + '" ' + this.renderHTMLAtrributes(value.attributes, ['value', 'target']) + '>' + replacement + '</a>';
         } else {
           replacement = value.value;
         }
-        console.log('|' + key + '|', replacement);
+        // console.log(`|${key}|`,replacement);
         newText = newText.replace('|' + key + '|', replacement);
-      };
-
-      for (var key in this.substitutions) {
-        _loop(key);
       }
       return newText;
     }
+    // applyIncludes(txt) {
+    //   let newText = txt;
+    //   for (const key in this.includes){
+    //     const value = this.includes[key].value;
+    //     let replacement = '';
+    //     if (value.type=="image"){
+    //       replacement = `<img src="${this.server}/docs/${value.value}" ${
+    //         this.renderHTMLAtrributes(value.attributes, ['alt','target'])
+    //       }/>`;
+    //       if ("target" in value.attributes)
+    //         replacement = `<a href="${value.attributes.target}" ${
+    //           this.renderHTMLAtrributes(value.attributes, ['value', 'target'])
+    //         }>${
+    //           replacement
+    //         }</a>`
+    //     } else {
+    //       replacement = value.value;
+    //     }
+    //     console.log(`|${key}|`,replacement);
+    //     newText = newText.replace(`|${key}|`,replacement);
+    //   }
+    //   return newText;
+    // }
+
   }, {
     key: 'toMDTables',
     value: function toMDTables(txt) {
@@ -3169,8 +3209,12 @@ var RstRenderer = function () {
   }, {
     key: 'markup2html',
     value: function markup2html(txt) {
-      var text = txt.replace("[BUTTON_BROWSE]", '<a href="#browse" class="button">Browse</a>').replace("[BUTTON_VIEWER]", '<a href="#viewer" class="button">Viewer</a>');
-      text = this.extractBlocks(text);
+      // let text = txt
+      // .replace("[BUTTON_BROWSE]",
+      //   `<a href="#browse"><img width="48%" src="${this.server}/docs/_static/images/browse_icon_s.jpeg"></a>`)
+      // .replace("[BUTTON_VIEWER]",
+      //   `<a href="#viewer"><img width="48%" src="${this.server}/docs/_static/images/matrix_icon.png"></a>`);
+      var text = this.extractBlocks(txt);
       text = this.applySubstitutions(text);
       text = this.toMDTables(text);
       return '<br/>' + this.converter.makeHtml(text);
@@ -3249,17 +3293,19 @@ var GenomePropertiesWebsite = function () {
   _createClass(GenomePropertiesWebsite, [{
     key: "markup2html",
     value: function markup2html(txt) {
-      var renderer = new RstRenderer(this.github);
+      var renderer = new RstRenderer(this.github, this);
       return renderer.markup2html(txt);
     }
   }, {
     key: "loadContent",
     value: function loadContent() {
       var pageRequiredToChange = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+      var key = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
+      var content = "";
       switch (location.hash) {
         case "#home":case "":
-          this.container.innerHTML = this.getHome();
+          content = this.getHome();
           break;
         case "#about":
         case "#calculating":
@@ -3267,7 +3313,7 @@ var GenomePropertiesWebsite = function () {
         case "#funding":
         case "#contributing":
         case "#contact":
-          this.container.innerHTML = this.getAboutTabs();
+          content = this.getAboutTabs();
           break;
         case '#browse':
         case '#hierarchy':
@@ -3276,20 +3322,24 @@ var GenomePropertiesWebsite = function () {
         case '#systems':
         case '#guilds':
         case '#categories':
-          this.container.innerHTML = this.getBrowseTabs();
+          content = this.getBrowseTabs();
           break;
         case "#viewer":
           this.container.innerHTML = this.getViewerHTML();
           this.loadViewer();
-          break;
+          return;
         default:
           if (location.hash.match(/^#GenProp\d{4}$/)) {
-            this.container.innerHTML = this.getGenProp(location.hash.substr(1));
-            return;
-          }
-          if (pageRequiredToChange) this.container.innerHTML = "404: Not found";
-        // console.log("other", location.hash);
+            content = this.getGenProp(location.hash.substr(1));
+          } else if (pageRequiredToChange) {
+            content = "404: Not found";
+          } // console.log("other", location.hash);
       }
+      if (key && key.startsWith("INCLUDE_") && key in this.cache) {
+        content = content.replace(key, this.markup2html(this.cache[key]));
+        this.cache[location.hash] = content;
+      }
+      this.container.innerHTML = content;
     }
   }, {
     key: "embbedInSection",
@@ -3301,18 +3351,20 @@ var GenomePropertiesWebsite = function () {
     value: function getResource(key, url, loader) {
       var _this2 = this;
 
+      var template_tag = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+      var embbedInSection = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : true;
+
       if (key in this.cache) return this.cache[key];
       fetch(url).then(function (a) {
         return a.text();
       }).then(function (a) {
         var html = loader(a);
-        _this2.cache[key] = _this2.embbedInSection(html);
-        _this2.loadContent(true);
+        _this2.cache[key] = embbedInSection ? _this2.embbedInSection(html) : html;
+        _this2.loadContent(true, key);
       }).catch(function (a) {
         return console.error(a);
       });
-
-      return this.embbedInSection('loading...');
+      return template_tag === null ? this.embbedInSection('loading...') : template_tag;
     }
   }, {
     key: "renderGenProp",
@@ -3389,10 +3441,10 @@ var GenomePropertiesWebsite = function () {
           viewer = new GenomePropertiesViewer({
         element_selector: "#gp-viewer",
         controller_element_selector: "#gp-selector",
-        server: "http://www.ebi.ac.uk/~gsalazar/genome_property.php?org=",
-        hierarchy_path: "./files/gp.dag.txt",
+        server: this.github + "/docs/release/GP_calculation/SUMMARY_FILE_",
+        hierarchy_path: this.github + "/docs/release/hierarchy.json",
         whitelist_path: "https://raw.githubusercontent.com/ProteinsWebTeam/genome-properties-viewer/master/test-files/gp_white_list.json",
-        server_tax: "./files/taxonomy.json",
+        server_tax: this.github + "/docs/release/taxonomy.json",
         height: 400
       });
       window.viewer = viewer;
@@ -3416,7 +3468,8 @@ var GenomePropertiesWebsite = function () {
   }, {
     key: "getHome",
     value: function getHome() {
-      return this.getResource('home', this.github + "/docs/landing.rst", this.markup2html.bind(this));
+      // return this.markup2html(text);
+      return this.getResource('#home', this.github + "/docs/landing.rst?", this.markup2html.bind(this));
     }
   }, {
     key: "getAboutTabs",

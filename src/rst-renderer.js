@@ -2,14 +2,16 @@ import showdown from "showdown";
 
 const blockType = {
   SUBSTITUTION: 1,
+  INCLUDE: 2,
   OTHER:-1,
 }
 
 export class RstRenderer {
-  constructor(server){
+  constructor(server, manager){
     this.converter = new showdown.Converter();
     this.server = server;
     this.substitutions = {};
+    this.manager = manager;
   }
 
   parseBlock(block){
@@ -26,8 +28,14 @@ export class RstRenderer {
         attributes: {}
       }
     } else {
-      obj.type = blockType.OTHER;
-      obj.value = lines[0].substr(3);
+      const parts2  = lines[0].split(' ');
+      if (parts2.length==3 && parts2[1]==="include::"){
+        obj.type = blockType.INCLUDE;
+        obj.value = parts2[2];
+      }else{
+        obj.type = blockType.OTHER;
+        obj.value = lines[0].substr(3);
+      }
     }
     for (let i=1;i<lines.length;i++){
       if (obj.type === blockType.SUBSTITUTION){
@@ -55,8 +63,19 @@ export class RstRenderer {
           return '';
         }else{
           const objBlock = this.parseBlock(block);
-          if (objBlock.type === blockType.SUBSTITUTION){
-            this.substitutions[objBlock.key] = objBlock;
+          switch (objBlock.type){
+            case blockType.SUBSTITUTION:
+              this.substitutions[objBlock.key] = objBlock;
+              break;
+            case blockType.INCLUDE:
+              return this.manager.getResource(
+                `INCLUDE_${objBlock.value}`,
+                `${this.server}/docs/${objBlock.value}`,
+                this.markup2html.bind(this),
+                `INCLUDE_${objBlock.value}`,
+                false
+              );
+              // return 'INCLUDE: '+objBlock.value;
           }
           block='';
         }
@@ -66,7 +85,12 @@ export class RstRenderer {
 
     return text;
   }
-
+  renderHTMLAtrributes(list, ignore=[]){
+    return Object.keys(list)
+      .filter(k=>ignore.indexOf(k)===-1)
+      .map(k=>k+`="${list[k]}"`)
+      .join("");
+  }
   applySubstitutions(txt) {
     let newText = txt;
     for (const key in this.substitutions){
@@ -74,18 +98,45 @@ export class RstRenderer {
       let replacement = '';
       if (value.type=="image"){
         replacement = `<img src="${this.server}/docs/${value.value}" ${
-          Object.keys(value.attributes)
-            .map(k=>k+`="${value.attributes[k]}"`)
-            .join("")
-        }/>`
+          this.renderHTMLAtrributes(value.attributes, ['alt','target'])
+        }/>`;
+        if ("target" in value.attributes)
+          replacement = `<a href="${value.attributes.target}" ${
+            this.renderHTMLAtrributes(value.attributes, ['value', 'target'])
+          }>${
+            replacement
+          }</a>`
       } else {
         replacement = value.value;
       }
-      console.log(`|${key}|`,replacement);
+      // console.log(`|${key}|`,replacement);
       newText = newText.replace(`|${key}|`,replacement);
     }
     return newText;
   }
+  // applyIncludes(txt) {
+  //   let newText = txt;
+  //   for (const key in this.includes){
+  //     const value = this.includes[key].value;
+  //     let replacement = '';
+  //     if (value.type=="image"){
+  //       replacement = `<img src="${this.server}/docs/${value.value}" ${
+  //         this.renderHTMLAtrributes(value.attributes, ['alt','target'])
+  //       }/>`;
+  //       if ("target" in value.attributes)
+  //         replacement = `<a href="${value.attributes.target}" ${
+  //           this.renderHTMLAtrributes(value.attributes, ['value', 'target'])
+  //         }>${
+  //           replacement
+  //         }</a>`
+  //     } else {
+  //       replacement = value.value;
+  //     }
+  //     console.log(`|${key}|`,replacement);
+  //     newText = newText.replace(`|${key}|`,replacement);
+  //   }
+  //   return newText;
+  // }
   toMDTables(txt) {
     let onTable = false;
     return txt.split('\n').map(l=>{
@@ -107,10 +158,12 @@ export class RstRenderer {
     }).join('\n');
   }
   markup2html (txt) {
-    let text = txt
-      .replace("[BUTTON_BROWSE]", '<a href="#browse" class="button">Browse</a>')
-      .replace("[BUTTON_VIEWER]", '<a href="#viewer" class="button">Viewer</a>');
-    text = this.extractBlocks(text)
+    // let text = txt
+      // .replace("[BUTTON_BROWSE]",
+      //   `<a href="#browse"><img width="48%" src="${this.server}/docs/_static/images/browse_icon_s.jpeg"></a>`)
+      // .replace("[BUTTON_VIEWER]",
+      //   `<a href="#viewer"><img width="48%" src="${this.server}/docs/_static/images/matrix_icon.png"></a>`);
+    let text = this.extractBlocks(txt)
     text = this.applySubstitutions(text);
     text = this.toMDTables(text)
     return '<br/>'+this.converter.makeHtml(text);

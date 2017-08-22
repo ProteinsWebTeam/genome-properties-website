@@ -7,6 +7,9 @@
 .masthead .menu li a {
   background-color: rgba(220,240,255,0.5);
 }
+.masthead-inner img {
+  max-width: 8%;
+}
 .is-active {
   display: block;
 }
@@ -33,3 +36,7 @@ ul.references li .authors {font-style: italic;}
 ul.references li .title {font-weight: bold;}
 
 .selected {text-shadow: yellow 1px 1px;}
+
+.main_button {
+  display:inline-block;
+}
