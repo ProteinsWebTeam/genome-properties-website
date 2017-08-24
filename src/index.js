@@ -90,8 +90,9 @@ class GenomePropertiesWebsite {
         this.loadViewer();
         return;
       default:
-        if (location.hash.match(/^#GenProp\d{4}$/)){
-          content = this.getGenProp(location.hash.substr(1));
+        const propMatch = location.hash.match(/^#GenProp\d{4}/)
+        if (propMatch){
+          content = this.getGenProp(propMatch[0].substr(1));
         }else if (pageRequiredToChange){
             content = "404: Not found";
         }// console.log("other", location.hash);
