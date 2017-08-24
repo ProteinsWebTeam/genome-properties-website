@@ -3136,30 +3136,6 @@ var RstRenderer = function () {
       }
       return newText;
     }
-    // applyIncludes(txt) {
-    //   let newText = txt;
-    //   for (const key in this.includes){
-    //     const value = this.includes[key].value;
-    //     let replacement = '';
-    //     if (value.type=="image"){
-    //       replacement = `<img src="${this.server}/docs/${value.value}" ${
-    //         this.renderHTMLAtrributes(value.attributes, ['alt','target'])
-    //       }/>`;
-    //       if ("target" in value.attributes)
-    //         replacement = `<a href="${value.attributes.target}" ${
-    //           this.renderHTMLAtrributes(value.attributes, ['value', 'target'])
-    //         }>${
-    //           replacement
-    //         }</a>`
-    //     } else {
-    //       replacement = value.value;
-    //     }
-    //     console.log(`|${key}|`,replacement);
-    //     newText = newText.replace(`|${key}|`,replacement);
-    //   }
-    //   return newText;
-    // }
-
   }, {
     key: 'toMDTables',
     value: function toMDTables(txt) {
@@ -3169,7 +3145,7 @@ var RstRenderer = function () {
         var partOfTable = l.indexOf('|') === 0;
         if (!onTable && isRow) {
           onTable = true;
-          return '<table>';
+          return '<div style="text-align: center;margin: 10px auto;"><table>';
         }
         if (onTable && isRow) return '';
         if (onTable && !isRow && partOfTable) {
@@ -3177,10 +3153,16 @@ var RstRenderer = function () {
         }
         if (onTable && !isRow && !partOfTable) {
           onTable = false;
-          return '</table>';
+          return '</table></div>';
         }
         return l;
       }).join('\n');
+    }
+  }, {
+    key: 'addHyperLinks',
+    value: function addHyperLinks(txt) {
+      var re = /`([a-zA-Z:/\.\d]+)\s<([a-zA-Z:/\.\d?=&]+)>`_/g;
+      return txt.replace(re, '<a href="$2">$1</a>');
     }
   }, {
     key: 'markup2html',
@@ -3190,7 +3172,8 @@ var RstRenderer = function () {
       //   `<a href="#browse"><img width="48%" src="${this.server}/docs/_static/images/browse_icon_s.jpeg"></a>`)
       // .replace("[BUTTON_VIEWER]",
       //   `<a href="#viewer"><img width="48%" src="${this.server}/docs/_static/images/matrix_icon.png"></a>`);
-      var text = this.extractBlocks(txt);
+      var text = this.addHyperLinks(txt);
+      text = this.extractBlocks(text);
       text = this.applySubstitutions(text);
       text = this.toMDTables(text);
       return '<br/>' + this.converter.makeHtml(text);
