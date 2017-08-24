@@ -3161,7 +3161,7 @@ var RstRenderer = function () {
   }, {
     key: 'addHyperLinks',
     value: function addHyperLinks(txt) {
-      var re = /`([a-zA-Z:@/\.\d]+)\s<([a-zA-Z:@/\.\d?=&]+)>`_/g;
+      var re = /`([a-zA-Z\-:@/\.\d]+)\s<([a-zA-Z\-:@/\.\d?=&]+)>`_/g;
       return txt.replace(re, '<a href="$2">$1</a>');
     }
   }, {
@@ -3263,7 +3263,7 @@ var GenomePropertiesWebsite = function () {
           break;
         case "#about":
         case "#calculating":
-        case "#docs":
+        case "#documentation":
         case "#funding":
         case "#contributing":
         case "#contact":
@@ -3432,12 +3432,12 @@ var GenomePropertiesWebsite = function () {
       var resource = {
         "#about": '/docs/background.rst',
         "#calculating": '/docs/calculating.rst',
-        "#docs": '/docs/index.rst',
+        "#documentation": '/docs/documentation.rst',
         "#funding": '/docs/funding.rst',
         "#contributing": '/docs/contributing.rst',
         "#contact": '/docs/contact.rst'
       };
-      var tabs = ['About', 'Calculating', 'Docs', 'Funding', 'Contributing', 'Contact'];
+      var tabs = ['About', 'Calculating', 'Funding', 'Contributing', 'Documentation', 'Contact'];
       return this.getContentTabs(resource, tabs, this.markup2html.bind(this));
     }
   }, {

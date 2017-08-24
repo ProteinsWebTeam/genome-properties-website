@@ -70,7 +70,7 @@ class GenomePropertiesWebsite {
         break;
       case "#about":
       case "#calculating":
-      case "#docs":
+      case "#documentation":
       case "#funding":
       case "#contributing":
       case "#contact":
@@ -353,14 +353,13 @@ class GenomePropertiesWebsite {
     const resource = {
       "#about": '/docs/background.rst',
       "#calculating": '/docs/calculating.rst',
-      "#docs": '/docs/index.rst',
+      "#documentation": '/docs/documentation.rst',
       "#funding": '/docs/funding.rst',
       "#contributing": '/docs/contributing.rst',
       "#contact": '/docs/contact.rst',
     };
     const tabs = [
-      'About', 'Calculating', 'Docs',
-      'Funding', 'Contributing', 'Contact'
+      'About', 'Calculating', 'Funding', 'Contributing', 'Documentation', 'Contact'
     ];
     return this.getContentTabs(resource,tabs,this.markup2html.bind(this));
   }
