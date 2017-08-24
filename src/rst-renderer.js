@@ -135,15 +135,10 @@ export class RstRenderer {
     }).join('\n');
   }
   addHyperLinks(txt){
-    const re = /`([a-zA-Z:/\.\d]+)\s<([a-zA-Z:/\.\d?=&]+)>`_/g;
+    const re = /`([a-zA-Z:@/\.\d]+)\s<([a-zA-Z:@/\.\d?=&]+)>`_/g;
     return txt.replace(re, '<a href="$2">$1</a>');
   }
   markup2html (txt) {
-    // let text = txt
-      // .replace("[BUTTON_BROWSE]",
-      //   `<a href="#browse"><img width="48%" src="${this.server}/docs/_static/images/browse_icon_s.jpeg"></a>`)
-      // .replace("[BUTTON_VIEWER]",
-      //   `<a href="#viewer"><img width="48%" src="${this.server}/docs/_static/images/matrix_icon.png"></a>`);
     let text = this.addHyperLinks(txt);
     text = this.extractBlocks(text);
     text = this.applySubstitutions(text);

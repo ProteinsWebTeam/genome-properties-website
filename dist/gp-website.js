@@ -3161,17 +3161,12 @@ var RstRenderer = function () {
   }, {
     key: 'addHyperLinks',
     value: function addHyperLinks(txt) {
-      var re = /`([a-zA-Z:/\.\d]+)\s<([a-zA-Z:/\.\d?=&]+)>`_/g;
+      var re = /`([a-zA-Z:@/\.\d]+)\s<([a-zA-Z:@/\.\d?=&]+)>`_/g;
       return txt.replace(re, '<a href="$2">$1</a>');
     }
   }, {
     key: 'markup2html',
     value: function markup2html(txt) {
-      // let text = txt
-      // .replace("[BUTTON_BROWSE]",
-      //   `<a href="#browse"><img width="48%" src="${this.server}/docs/_static/images/browse_icon_s.jpeg"></a>`)
-      // .replace("[BUTTON_VIEWER]",
-      //   `<a href="#viewer"><img width="48%" src="${this.server}/docs/_static/images/matrix_icon.png"></a>`);
       var text = this.addHyperLinks(txt);
       text = this.extractBlocks(text);
       text = this.applySubstitutions(text);
