@@ -131,30 +131,24 @@ class GenomePropertiesWebsite {
       <h3>${property.name}</h3>
       <span class="tag">${property.type}</span> <span class="tag secondary">Threshold: ${property.threshold}</span>
       <br/><br/>
-      <div class="row">
+      <div>
         <h4>Description</h4>
         <p>${this.renderDescription(property.description, property.accession)}</p>
       </div>
-      <div class="row">
+      <div>
         <h4>Steps</h4>
-        <div class="medium-3 columns">
-          <ul class="vertical tabs" data-tabs id="step-tabs">
-            ${property.steps.map((step,i) => `
-              <li class="tabs-title ${i===0?'is-active':''}">
-                <a target="#panel${step.number}" ${i===0?'aria-selected="true"':''}>
-                  ${step.number}. ${step.id}
-                </a>
-              </li>
-            `).join('')}
-          </ul>
-        </div>
-        <div class="medium-9 columns">
-          <div class="tabs-content" data-tabs-content="step-tabs">
+        <table  style="background-color:#86a5bb;">
+          <tr>
+            <th width="30%">Step</td>
+            <th width="65%">Details</td>
+          </tr>
+
           ${property.steps.map((step,i) => `
-            <div class="tabs-panel ${i===0?'is-active':''}" id="panel${step.number}">
-              <h5>${step.id}</h5>
+            <tr>
+              <td>${step.number}. ${step.id}</td>
+              <td>
               ${step.requires==="1"?'<span class="tag">Required</span>':''}
-              <table>
+              <table style="background-color:#fefefe">
                 <tr>
                   <th>Evidence</th>
                   <th>Go Terms</th>
@@ -166,12 +160,12 @@ class GenomePropertiesWebsite {
                   </tr>
                 `).join('')}
               </table>
-            </div>
+              </td>
+            </tr>
           `).join('')}
-          </div>
-        </div>
+        </table>
       </div>
-      <div class="row">
+      <div>
         <h4>Database Links</h4>
         <ul>
           ${property.databases.map(db => `
@@ -179,7 +173,7 @@ class GenomePropertiesWebsite {
           `).join('')}
         </ul>
       </div>
-      <div class="row">
+      <div>
         <h4>References</h4>
         <ul class="references">
           ${property.references.map(ref => `
