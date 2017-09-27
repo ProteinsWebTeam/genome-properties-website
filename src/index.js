@@ -150,8 +150,8 @@ class GenomePropertiesWebsite {
               ${step.requires==="1"?'<span class="tag">Required</span>':''}
               <table style="background-color:#fefefe">
                 <tr>
-                  <th>Evidence</th>
-                  <th>Go Terms</th>
+                  <th style="text-align: left;">Evidence</th>
+                  <th style="text-align: left;">Go Terms</th>
                 </tr>
                 ${step.evidence_list.map((e,i) => `
                   <tr>
@@ -215,7 +215,7 @@ class GenomePropertiesWebsite {
     if (!txt) return '';
     const parts = txt.split(';');
     return parts
-      .filter(p => p.trim()!=='')
+      .filter(p => p.trim()!=='' && p.trim()!=='sufficient')
       .map(t => {
         const term = t.trim();
         if (term.startsWith("GO:"))

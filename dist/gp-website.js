@@ -3327,7 +3327,7 @@ var GenomePropertiesWebsite = function () {
       var _this3 = this;
 
       return "\n    <h2>" + property.accession + "</h2>\n      <h3>" + property.name + "</h3>\n      <span class=\"tag\">" + property.type + "</span> <span class=\"tag secondary\">Threshold: " + property.threshold + "</span>\n      <br/><br/>\n      <div>\n        <h4>Description</h4>\n        <p>" + this.renderDescription(property.description, property.accession) + "</p>\n      </div>\n      <div>\n        <h4>Steps</h4>\n        <table  style=\"background-color:#86a5bb;\">\n          <tr>\n            <th width=\"30%\">Step</td>\n            <th width=\"65%\">Details</td>\n          </tr>\n\n          " + property.steps.map(function (step, i) {
-        return "\n            <tr>\n              <td>" + step.number + ". " + step.id + "</td>\n              <td>\n              " + (step.requires === "1" ? '<span class="tag">Required</span>' : '') + "\n              <table style=\"background-color:#fefefe\">\n                <tr>\n                  <th>Evidence</th>\n                  <th>Go Terms</th>\n                </tr>\n                " + step.evidence_list.map(function (e, i) {
+        return "\n            <tr>\n              <td>" + step.number + ". " + step.id + "</td>\n              <td>\n              " + (step.requires === "1" ? '<span class="tag">Required</span>' : '') + "\n              <table style=\"background-color:#fefefe\">\n                <tr>\n                  <th style=\"text-align: left;\">Evidence</th>\n                  <th style=\"text-align: left;\">Go Terms</th>\n                </tr>\n                " + step.evidence_list.map(function (e, i) {
           return "\n                  <tr>\n                    <td>" + _this3.renderEvidence(e.evidence) + "</td>\n                    <td>" + _this3.renderEvidence(e.go) + "</td>\n                  </tr>\n                ";
         }).join('') + "\n              </table>\n              </td>\n            </tr>\n          ";
       }).join('') + "\n        </table>\n      </div>\n      <div>\n        <h4>Database Links</h4>\n        <ul>\n          " + property.databases.map(function (db) {
@@ -3357,7 +3357,7 @@ var GenomePropertiesWebsite = function () {
       if (!txt) return '';
       var parts = txt.split(';');
       return parts.filter(function (p) {
-        return p.trim() !== '';
+        return p.trim() !== '' && p.trim() !== 'sufficient';
       }).map(function (t) {
         var term = t.trim();
         if (term.startsWith("GO:")) return "<a href=\"http://www.ebi.ac.uk/QuickGO/GTerm?id=" + term + "\">" + term + "</a>";
