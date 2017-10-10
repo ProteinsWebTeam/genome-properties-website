@@ -58,3 +58,6 @@ ul.references li .title {font-weight: bold;}
 .main_button {
   display:inline-block;
 }
+.tag {
+  margin-left: 1.5em;
+}

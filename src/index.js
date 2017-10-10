@@ -140,27 +140,21 @@ class GenomePropertiesWebsite {
         <table  style="background-color:#86a5bb;">
           <tr>
             <th width="30%">Step</td>
-            <th width="65%">Details</td>
+            <th style="text-align: left;">Evidence</th>
+            <th style="text-align: left;">Go Terms</th>
           </tr>
 
           ${property.steps.map((step,i) => `
             <tr>
-              <td>${step.number}. ${step.id}</td>
-              <td>
-              ${step.requires==="1"?'<span class="tag">Required</span>':''}
-              <table style="background-color:#fefefe">
-                <tr>
-                  <th style="text-align: left;">Evidence</th>
-                  <th style="text-align: left;">Go Terms</th>
-                </tr>
+              <td rowspan="${step.evidence_list.length}">${step.number}. ${step.id}
+                ${step.requires==="1"?'<br/><span class="tag">Required</span>':''}
+              </td>
                 ${step.evidence_list.map((e,i) => `
-                  <tr>
+                  ${i>0?"<tr>":""}
                     <td>${this.renderEvidence(e.evidence)}</td>
                     <td>${this.renderEvidence(e.go)}</td>
-                  </tr>
+                  ${i>0?"</tr>":""}
                 `).join('')}
-              </table>
-              </td>
             </tr>
           `).join('')}
         </table>
