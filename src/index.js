@@ -137,20 +137,20 @@ class GenomePropertiesWebsite {
       </div>
       <div>
         <h4>Steps</h4>
-        <table  style="background-color:#86a5bb;">
-          <tr>
+        <table class="no-stripe" style=" background-color:#86a5bb;">
+          <tr style="background-color: #ddd">
             <th width="30%">Step</td>
             <th style="text-align: left;">Evidence</th>
             <th style="text-align: left;">Go Terms</th>
           </tr>
 
-          ${property.steps.map((step,i) => `
-            <tr>
+          ${property.steps.map((step,j) => `
+            <tr style="background-color: ${j%2==0?"white":"#eee"}">
               <td rowspan="${step.evidence_list.length}">${step.number}. ${step.id}
                 ${step.requires==="1"?'<br/><span class="tag">Required</span>':''}
               </td>
                 ${step.evidence_list.map((e,i) => `
-                  ${i>0?"<tr>":""}
+                  ${i>0?`<tr style="background-color: ${j%2==0?"white":"#eee"}">`:""}
                     <td>${this.renderEvidence(e.evidence)}</td>
                     <td>${this.renderEvidence(e.go)}</td>
                   ${i>0?"</tr>":""}
