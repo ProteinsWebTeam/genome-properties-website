@@ -37,11 +37,19 @@ var parseGenProp = function parseGenProp(txt) {
 
     // References
     if (key === 'RN') {
-      currentRef = { number: Number(value.replace('[', '').replace(']', '')) };
+      currentRef = {
+        number: Number(value.replace('[', '').replace(']', '')),
+        title: ''
+      };
       property.references.push(currentRef);
     }
-    if (key in refKeys && currentRef) currentRef[refKeys[key]] = value;
-
+    if (key in refKeys && currentRef) {
+      if (key === 'RT') {
+        currentRef.title += value;
+      } else {
+        currentRef[refKeys[key]] = value;
+      }
+    }
     // Databases
     if (key === 'DC') {
       currentDB = { title: value };
