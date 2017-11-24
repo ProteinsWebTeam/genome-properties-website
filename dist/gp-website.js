@@ -3330,19 +3330,52 @@ var GenomePropertiesWebsite = function () {
       return template_tag === null ? this.embbedInSection('loading...') : template_tag;
     }
   }, {
-    key: "renderGenProp",
-    value: function renderGenProp(property) {
+    key: "renderReferences",
+    value: function renderReferences(references, accession) {
+      return "\n      <ul class=\"references\">\n        " + references.map(function (ref) {
+        return "\n            <li class=\"reference\" id=\"" + accession + "-" + ref.number + "\">\n              <span class=\"index\">[" + ref.number + "]</span>\n              <span class=\"authors\">" + ref.author + "</span>\n              <span class=\"title\">" + ref.title + "</span>\n              <span class=\"citation\">" + ref.citation + "</span>\n              <span class=\"reference_id\">" + ref.PMID + "</span>\n              <a target=\"_blank\" rel=\"noopener\" href=\"https://europepmc.org/abstract/MED/" + ref.PMID + "\">EuropePMC</a>\n            </li>\n        ";
+      }).join('') + "\n      </ul>\n    ";
+    }
+  }, {
+    key: "getFirstEvidenceLink",
+    value: function getFirstEvidenceLink(evidence_list, text) {
+      if (evidence_list && evidence_list.length) {
+        var gp = evidence_list[0].evidence.trim().replace(';', '');
+        return "<a href=\"#" + gp + "\">" + text + "</a>";
+      }
+      return '';
+    }
+  }, {
+    key: "renderChildren",
+    value: function renderChildren(property) {
       var _this3 = this;
 
-      return "\n    <h2>" + property.accession + "</h2>\n      <h3>" + property.name + "</h3>\n      <span class=\"tag\">" + property.type + "</span> <span class=\"tag secondary\">Threshold: " + property.threshold + "</span>\n      <br/><br/>\n      <div>\n        <h4>Description</h4>\n        <p>" + this.renderDescription(property.description, property.accession) + "</p>\n      </div>\n      <div>\n        <h4>Steps</h4>\n        <table class=\"no-stripe\" style=\" background-color:#86a5bb;\">\n          <tr style=\"background-color: #ddd\">\n            <th width=\"30%\">Step</td>\n            <th style=\"text-align: left;\">Evidence</th>\n            <th style=\"text-align: left;\">Go Terms</th>\n          </tr>\n\n          " + property.steps.map(function (step, j) {
-        return "\n            <tr style=\"background-color: " + (j % 2 == 0 ? "white" : "#eee") + "\">\n              <td rowspan=\"" + step.evidence_list.length + "\">" + step.number + ". " + step.id + "\n                " + (step.requires === "1" ? '<br/><span class="tag">Required</span>' : '') + "\n              </td>\n                " + step.evidence_list.map(function (e, i) {
-          return "\n                  " + (i > 0 ? "<tr style=\"background-color: " + (j % 2 == 0 ? "white" : "#eee") + "\">" : "") + "\n                    <td>" + _this3.renderEvidence(e.evidence) + "</td>\n                    <td>" + _this3.renderEvidence(e.go) + "</td>\n                  " + (i > 0 ? "</tr>" : "") + "\n                ";
-        }).join('') + "\n            </tr>\n          ";
-      }).join('') + "\n        </table>\n      </div>\n      <div>\n        <h4>Database Links</h4>\n        <ul>\n          " + property.databases.map(function (db) {
-        return "\n            <li>" + _this3.renderDatabaseLink(db.title, db.link) + "</li>\n          ";
-      }).join('') + "\n        </ul>\n      </div>\n      <div>\n        <h4>References</h4>\n        <ul class=\"references\">\n          " + property.references.map(function (ref) {
-        return "\n              <li class=\"reference\" id=\"" + property.accession + "-" + ref.number + "\">\n                <span class=\"index\">[" + ref.number + "]</span>\n                <span class=\"authors\">" + ref.author + "</span>\n                <span class=\"title\">" + ref.title + "</span>\n                <span class=\"citation\">" + ref.citation + "</span>\n                <span class=\"reference_id\">" + ref.PMID + "</span>\n                <a target=\"_blank\" rel=\"noopener\" href=\"https://europepmc.org/abstract/MED/" + ref.PMID + "\">EuropePMC</a>\n              </li>\n          ";
-      }).join('') + "\n        </ul>\n      </div>\n\n    ";
+      return "\n    <div>\n      <table class=\"no-stripe\" style=\" background-color:#86a5bb;\">\n        <tr style=\"background-color: #ddd\">\n          <th width=\"30%\">Property</td>\n          <th style=\"text-align: left;\">'Accession'</th>\n        </tr>\n\n        " + property.steps.map(function (step, j) {
+        return "\n          <tr style=\"background-color: " + (j % 2 == 0 ? "white" : "#eee") + "\">\n            <td rowspan=\"" + step.evidence_list.length + "\">\n              " + step.number + ". " + _this3.getFirstEvidenceLink(step.evidence_list, step.id) + "\n              " + (step.requires === "1" ? '<br/><span class="tag">Required</span>' : '') + "\n            </td>\n              " + step.evidence_list.map(function (e, i) {
+          return "\n                " + (i > 0 ? "<tr style=\"background-color: " + (j % 2 == 0 ? "white" : "#eee") + "\">" : "") + "\n                  <td>" + _this3.renderEvidence(e.evidence) + "</td>\n                " + (i > 0 ? "</tr>" : "") + "\n              ";
+        }).join('') + "\n          </tr>\n        ";
+      }).join('') + "\n      </table>\n    </div>\n    ";
+    }
+  }, {
+    key: "renderSteps",
+    value: function renderSteps(property) {
+      var _this4 = this;
+
+      return "\n    <div>\n      <h4>Steps</h4>\n      <table class=\"no-stripe\" style=\" background-color:#86a5bb;\">\n        <tr style=\"background-color: #ddd\">\n          <th width=\"30%\">Step</td>\n          <th style=\"text-align: left;\">Evidence</th>\n          <th style=\"text-align: left;\">Go Terms</th>\n        </tr>\n\n        " + property.steps.map(function (step, j) {
+        return "\n          <tr style=\"background-color: " + (j % 2 == 0 ? "white" : "#eee") + "\">\n            <td rowspan=\"" + step.evidence_list.length + "\">" + step.number + ". " + step.id + "\n              " + (step.requires === "1" ? '<br/><span class="tag">Required</span>' : '') + "\n            </td>\n              " + step.evidence_list.map(function (e, i) {
+          return "\n                " + (i > 0 ? "<tr style=\"background-color: " + (j % 2 == 0 ? "white" : "#eee") + "\">" : "") + "\n                  <td>" + _this4.renderEvidence(e.evidence) + "</td>\n                  <td>" + _this4.renderEvidence(e.go) + "</td>\n                " + (i > 0 ? "</tr>" : "") + "\n              ";
+        }).join('') + "\n          </tr>\n        ";
+      }).join('') + "\n      </table>\n      <span\n        data-tooltip\n        aria-haspopup=\"true\"\n        data-disable-hover=\"false\"\n        class=\"has-tip tag secondary\"\n        title=\"Required to pass a step\"\n      >\n          Threshold: " + property.threshold + "\n      </span>\n    </div>\n    ";
+    }
+  }, {
+    key: "renderGenProp",
+    value: function renderGenProp(property) {
+      var _this5 = this;
+
+      var isCategory = property.type === 'CATEGORY';
+      return "\n    <h2>" + property.accession + " - " + property.name + "</h2>\n      <span class=\"tag\">Category: " + property.type + "</span>\n      <br/><br/>\n      <div>\n        <h4>Description</h4>\n        <p>" + this.renderDescription(property.description, property.accession) + "</p>\n      </div>\n      <div>\n        <h4>References</h4>\n        " + (property.references && property.references.length ? this.renderReferences(property.references, property.accession) : '<cite>None</cite>') + "\n      </div>\n      <div>\n        " + (isCategory ? this.renderChildren(property) : this.renderSteps(property)) + "\n      </div>\n      <div>\n        <h4>Database Links</h4>\n        " + (property.references && property.references.length ? "\n          <ul>\n            " + property.databases.map(function (db) {
+        return "\n              <li>" + _this5.renderDatabaseLink(db.title, db.link) + "</li>\n            ";
+      }).join('') + "\n          </ul>\n          " : '<cite>None</cite>') + "\n      </div>\n    ";
     }
   }, {
     key: "renderDescription",
@@ -3362,7 +3395,7 @@ var GenomePropertiesWebsite = function () {
   }, {
     key: "renderEvidence",
     value: function renderEvidence(txt) {
-      if (!txt) return '';
+      if (!txt) return '<cite>None</cite>';
       var parts = txt.split(';');
       return parts.filter(function (p) {
         return p.trim() !== '' && p.trim() !== 'sufficient';
@@ -3379,14 +3412,14 @@ var GenomePropertiesWebsite = function () {
   }, {
     key: "renderGenPropHierarchy",
     value: function renderGenPropHierarchy(hierarchy) {
-      var _this4 = this;
+      var _this6 = this;
 
       var expanded = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
       var level = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
 
       // console.log(hierarchy)
       return "\n    <div class=\"genome-property " + (expanded ? 'expanded' : '') + "\">\n      <header>\n        " + (!hierarchy.children.length ? '・' : "\n        <a style=\"border: 0;color: darkred;\">" + (expanded ? '▾' : '▸') + "</a>\n        ") + "\n        <a href=\"#" + hierarchy.id + "\">" + hierarchy.id + "</a>: " + hierarchy.name + "\n      </header>\n      " + (!hierarchy.children.length ? '' : "\n        <div class=\"children\" style=\"\n          margin-left: " + level * 10 + "px;\n        \">\n          " + hierarchy.children.map(function (child) {
-        return _this4.renderGenPropHierarchy(child, false, level + 1);
+        return _this6.renderGenPropHierarchy(child, false, level + 1);
       }).join('') + "\n        </div>\n      ") + "\n    </div>\n    ";
     }
   }, {
@@ -3419,11 +3452,11 @@ var GenomePropertiesWebsite = function () {
   }, {
     key: "getGenProp",
     value: function getGenProp(acc) {
-      var _this5 = this;
+      var _this7 = this;
 
       var url = this.github + "/data/" + acc + "/DESC";
       return this.getResource(acc, url, function (txt) {
-        return _this5.renderGenProp(parseGenProp(txt));
+        return _this7.renderGenProp(parseGenProp(txt));
       });
     }
   }, {
@@ -3481,10 +3514,10 @@ var GenomePropertiesWebsite = function () {
   }, {
     key: "getProps",
     value: function getProps() {
-      var _this6 = this;
+      var _this8 = this;
 
       return this.getResource('props', this.github + "/docs/release/hierarchy.json", function (txt) {
-        return _this6.renderGenPropHierarchy(JSON.parse(txt));
+        return _this8.renderGenPropHierarchy(JSON.parse(txt));
       });
     }
   }]);

@@ -102,6 +102,7 @@ class GenomePropertiesWebsite {
       this.cache[location.hash] = content;
     }
     this.container.innerHTML = content;
+
   }
   embbedInSection(html){
     return `
@@ -125,64 +126,123 @@ class GenomePropertiesWebsite {
       .catch(a=>console.error(a));
     return template_tag===null ? this.embbedInSection('loading...') : template_tag;
   }
-  renderGenProp(property){
+  renderReferences(references, accession){
     return `
-    <h2>${property.accession}</h2>
-      <h3>${property.name}</h3>
-      <span class="tag">${property.type}</span> <span class="tag secondary">Threshold: ${property.threshold}</span>
+      <ul class="references">
+        ${references.map(ref => `
+            <li class="reference" id="${accession}-${ref.number}">
+              <span class="index">[${ref.number}]</span>
+              <span class="authors">${ref.author}</span>
+              <span class="title">${ref.title}</span>
+              <span class="citation">${ref.citation}</span>
+              <span class="reference_id">${ref.PMID}</span>
+              <a target="_blank" rel="noopener" href="https://europepmc.org/abstract/MED/${ref.PMID}">EuropePMC</a>
+            </li>
+        `).join('')}
+      </ul>
+    `;
+  }
+  getFirstEvidenceLink(evidence_list, text){
+    if (evidence_list && evidence_list.length) {
+      const gp = evidence_list[0].evidence.trim().replace(';', '');
+      return `<a href="#${gp}">${text}</a>`;
+    }
+    return '';
+  }
+  renderChildren(property){
+    return `
+    <div>
+      <table class="no-stripe" style=" background-color:#86a5bb;">
+        <tr style="background-color: #ddd">
+          <th width="30%">Property</td>
+          <th style="text-align: left;">'Accession'</th>
+        </tr>
+
+        ${property.steps.map((step,j) => `
+          <tr style="background-color: ${j%2==0?"white":"#eee"}">
+            <td rowspan="${step.evidence_list.length}">
+              ${step.number}. ${this.getFirstEvidenceLink(step.evidence_list, step.id)}
+              ${step.requires==="1"?'<br/><span class="tag">Required</span>':''}
+            </td>
+              ${step.evidence_list.map((e,i) => `
+                ${i>0?`<tr style="background-color: ${j%2==0?"white":"#eee"}">`:""}
+                  <td>${this.renderEvidence(e.evidence)}</td>
+                ${i>0?"</tr>":""}
+              `).join('')}
+          </tr>
+        `).join('')}
+      </table>
+    </div>
+    `;
+  }
+  renderSteps(property){
+    return `
+    <div>
+      <h4>Steps</h4>
+      <table class="no-stripe" style=" background-color:#86a5bb;">
+        <tr style="background-color: #ddd">
+          <th width="30%">Step</td>
+          <th style="text-align: left;">Evidence</th>
+          <th style="text-align: left;">Go Terms</th>
+        </tr>
+
+        ${property.steps.map((step,j) => `
+          <tr style="background-color: ${j%2==0?"white":"#eee"}">
+            <td rowspan="${step.evidence_list.length}">${step.number}. ${step.id}
+              ${step.requires==="1"?'<br/><span class="tag">Required</span>':''}
+            </td>
+              ${step.evidence_list.map((e,i) => `
+                ${i>0?`<tr style="background-color: ${j%2==0?"white":"#eee"}">`:""}
+                  <td>${this.renderEvidence(e.evidence)}</td>
+                  <td>${this.renderEvidence(e.go)}</td>
+                ${i>0?"</tr>":""}
+              `).join('')}
+          </tr>
+        `).join('')}
+      </table>
+      <span
+        data-tooltip
+        aria-haspopup="true"
+        data-disable-hover="false"
+        class="has-tip tag secondary"
+        title="Required to pass a step"
+      >
+          Threshold: ${property.threshold}
+      </span>
+    </div>
+    `;
+  }
+  renderGenProp(property){
+    const isCategory = property.type === 'CATEGORY';
+    return `
+    <h2>${property.accession} - ${property.name}</h2>
+      <span class="tag">Category: ${property.type}</span>
       <br/><br/>
       <div>
         <h4>Description</h4>
         <p>${this.renderDescription(property.description, property.accession)}</p>
       </div>
       <div>
-        <h4>Steps</h4>
-        <table class="no-stripe" style=" background-color:#86a5bb;">
-          <tr style="background-color: #ddd">
-            <th width="30%">Step</td>
-            <th style="text-align: left;">Evidence</th>
-            <th style="text-align: left;">Go Terms</th>
-          </tr>
-
-          ${property.steps.map((step,j) => `
-            <tr style="background-color: ${j%2==0?"white":"#eee"}">
-              <td rowspan="${step.evidence_list.length}">${step.number}. ${step.id}
-                ${step.requires==="1"?'<br/><span class="tag">Required</span>':''}
-              </td>
-                ${step.evidence_list.map((e,i) => `
-                  ${i>0?`<tr style="background-color: ${j%2==0?"white":"#eee"}">`:""}
-                    <td>${this.renderEvidence(e.evidence)}</td>
-                    <td>${this.renderEvidence(e.go)}</td>
-                  ${i>0?"</tr>":""}
-                `).join('')}
-            </tr>
-          `).join('')}
-        </table>
+        <h4>References</h4>
+        ${property.references && property.references.length ?
+          this.renderReferences(property.references, property.accession) :
+          '<cite>None</cite>'
+        }
+      </div>
+      <div>
+        ${isCategory ? this.renderChildren(property) : this.renderSteps(property)}
       </div>
       <div>
         <h4>Database Links</h4>
-        <ul>
-          ${property.databases.map(db => `
-            <li>${this.renderDatabaseLink(db.title, db.link)}</li>
-          `).join('')}
-        </ul>
+        ${property.references && property.references.length ? `
+          <ul>
+            ${property.databases.map(db => `
+              <li>${this.renderDatabaseLink(db.title, db.link)}</li>
+            `).join('')}
+          </ul>
+          ` : '<cite>None</cite>'
+        }
       </div>
-      <div>
-        <h4>References</h4>
-        <ul class="references">
-          ${property.references.map(ref => `
-              <li class="reference" id="${property.accession}-${ref.number}">
-                <span class="index">[${ref.number}]</span>
-                <span class="authors">${ref.author}</span>
-                <span class="title">${ref.title}</span>
-                <span class="citation">${ref.citation}</span>
-                <span class="reference_id">${ref.PMID}</span>
-                <a target="_blank" rel="noopener" href="https://europepmc.org/abstract/MED/${ref.PMID}">EuropePMC</a>
-              </li>
-          `).join('')}
-        </ul>
-      </div>
-
     `;
   }
   renderDescription(txt, acc){
@@ -206,7 +266,7 @@ class GenomePropertiesWebsite {
     return `<b>${title}</b>: ${a}`;
   }
   renderEvidence(txt){
-    if (!txt) return '';
+    if (!txt) return '<cite>None</cite>';
     const parts = txt.split(';');
     return parts
       .filter(p => p.trim()!=='' && p.trim()!=='sufficient')
