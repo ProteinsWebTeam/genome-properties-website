@@ -1,5 +1,6 @@
 const mainKeys = {
   AC: 'accession',
+  AU: 'author',
   DE: 'name',
   TP: 'type',
   TH: 'threshold',

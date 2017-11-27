@@ -3,6 +3,7 @@ var GenomePropertiesWebsite = (function () {
 
 var mainKeys = {
   AC: 'accession',
+  AU: 'author',
   DE: 'name',
   TP: 'type',
   TH: 'threshold'
@@ -3186,10 +3187,6 @@ var RstRenderer = function () {
   return RstRenderer;
 }();
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 var expandElement = function expandElement(element) {
   element.innerHTML = '▾';
   if (element.parentNode.parentNode) element.parentNode.parentNode.classList.add("expanded");
@@ -3205,7 +3202,7 @@ var searchHierarchy = function searchHierarchy(term) {
   document.querySelectorAll('span.genprop-label').forEach(function (e) {
     return e.classList.remove("search-match");
   });
-  if (term.trim() !== '') document.querySelectorAll("span.genprop-label[text*=" + term + "]").forEach(function (e) {
+  if (term.trim() !== '') document.querySelectorAll('span.genprop-label[text*=' + term + ']').forEach(function (e) {
     e.classList.add("search-match");
     expandParents(e.parentNode.parentNode);
   });
@@ -3216,6 +3213,161 @@ var expandParents = function expandParents(element) {
     expandParents(element.parentNode.parentNode);
   }
 };
+var renderGenPropHierarchy = function renderGenPropHierarchy(hierarchy) {
+  var expanded = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+  var level = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
+
+  // console.log(hierarchy)
+  return '\n  <div class="genome-property ' + (expanded ? 'expanded' : '') + '">\n    <header>\n      ' + (!hierarchy.children.length ? '・' : '\n      <a style="border: 0;color: darkred;" class="expander">' + (expanded ? '▾' : '▸') + '</a>\n      ') + '\n      <span class="genprop-label" text="' + hierarchy.id + ' ' + hierarchy.name + '">\n        <a href="#' + hierarchy.id + '">' + hierarchy.id + '</a>:\n        ' + hierarchy.name + '\n      </span>\n    </header>\n    ' + (!hierarchy.children.length ? '' : '\n      <div class="children" style="\n        margin-left: ' + level * 10 + 'px;\n      ">\n        ' + hierarchy.children.map(function (child) {
+    return renderGenPropHierarchy(child, false, level + 1);
+  }).join('') + '\n      </div>\n    ') + '\n  </div>\n  ';
+};
+var renderGenPropHierarchyPage = function renderGenPropHierarchyPage(txt) {
+  var payload = '<div>\n                  <input type="text" id="genprop-searcher" placeholder="Search" />\n                  <a class="expand-all">Expand All</a> |\n                  <a class="collapse-all">Collapse All</a>\n                </<div><br/><br/>';
+  payload += renderGenPropHierarchy(JSON.parse(txt));
+  return payload;
+};
+
+var _createClass$2 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck$2(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var GenPropRenderer = function () {
+  function GenPropRenderer() {
+    _classCallCheck$2(this, GenPropRenderer);
+  }
+
+  _createClass$2(GenPropRenderer, [{
+    key: 'renderGenProp',
+    value: function renderGenProp(property) {
+      var _this = this;
+
+      var isCategory = property.type === 'CATEGORY';
+      return '\n      <h2>' + property.accession + ' - ' + property.name + '</h2>\n      <span class="tag">Category: ' + property.type + '</span>\n      <br/><br/>\n      <div>Author: ' + property.author + '</div>\n      <br/>\n      <div>\n        <h4>Description</h4>\n        <p>' + this.renderDescription(property.description, property.accession) + '</p>\n      </div>\n      <div>\n        <h4>References</h4>\n        ' + (property.references && property.references.length ? this.renderReferences(property.references, property.accession) : '<cite>None</cite>') + '\n      </div>\n      <div>\n        ' + (isCategory ? this.renderChildren(property) : this.renderSteps(property)) + '\n      </div>\n      <div>\n        <h4>Database Links</h4>\n        ' + (property.references && property.references.length ? '\n          <ul>\n            ' + property.databases.map(function (db) {
+        return '\n              <li>' + _this.renderDatabaseLink(db.title, db.link) + '</li>\n            ';
+      }).join('') + '\n          </ul>\n          ' : '<cite>None</cite>') + '\n      </div>\n    ';
+    }
+  }, {
+    key: 'renderDescription',
+    value: function renderDescription(txt, acc) {
+      return txt.replace(/\[(\d+)\]/g, '<a href="#' + acc + '-$1">[$1]</a>');
+    }
+  }, {
+    key: 'renderReferences',
+    value: function renderReferences(references, accession) {
+      return '\n      <ul class="references">\n        ' + references.map(function (ref) {
+        return '\n            <li class="reference" id="' + accession + '-' + ref.number + '">\n              <span class="index">[' + ref.number + ']</span>\n              <span class="authors">' + ref.author + '</span>\n              <span class="title">' + ref.title + '</span>\n              <span class="citation">' + ref.citation + '</span>\n              <span class="reference_id">' + ref.PMID + '</span>\n              <a target="_blank" rel="noopener" href="https://europepmc.org/abstract/MED/' + ref.PMID + '">EuropePMC</a>\n            </li>\n        ';
+      }).join('') + '\n      </ul>\n    ';
+    }
+  }, {
+    key: 'renderChildren',
+    value: function renderChildren(property) {
+      var _this2 = this;
+
+      return '\n    <div>\n      <table class="no-stripe" style=" background-color:#86a5bb;">\n        <tr style="background-color: #ddd">\n          <th width="30%">Property</td>\n          <th style="text-align: left;">\'Accession\'</th>\n        </tr>\n\n        ' + property.steps.map(function (step, j) {
+        return '\n          <tr style="background-color: ' + (j % 2 == 0 ? "white" : "#eee") + '">\n            <td rowspan="' + step.evidence_list.length + '">\n              ' + step.number + '. ' + _this2.getFirstEvidenceLink(step.evidence_list, step.id) + '\n              ' + (step.requires === "1" ? '<br/><span class="tag">Required</span>' : '') + '\n            </td>\n              ' + step.evidence_list.map(function (e, i) {
+          return '\n                ' + (i > 0 ? '<tr style="background-color: ' + (j % 2 == 0 ? "white" : "#eee") + '">' : "") + '\n                  <td>' + _this2.renderEvidence(e.evidence) + '</td>\n                ' + (i > 0 ? "</tr>" : "") + '\n              ';
+        }).join('') + '\n          </tr>\n        ';
+      }).join('') + '\n      </table>\n    </div>\n    ';
+    }
+  }, {
+    key: 'renderSteps',
+    value: function renderSteps(property) {
+      var _this3 = this;
+
+      return '\n    <div>\n      <h4>Steps</h4>\n      <table class="no-stripe" style=" background-color:#86a5bb;">\n        <tr style="background-color: #ddd">\n          <th width="30%">Step</td>\n          <th style="text-align: left;">Evidence</th>\n          <th style="text-align: left;">Go Terms</th>\n        </tr>\n\n        ' + property.steps.map(function (step, j) {
+        return '\n          <tr style="background-color: ' + (j % 2 == 0 ? "white" : "#eee") + '">\n            <td rowspan="' + step.evidence_list.length + '">' + step.number + '. ' + step.id + '\n              ' + (step.requires === "1" ? '<br/><span class="tag">Required</span>' : '') + '\n            </td>\n              ' + step.evidence_list.map(function (e, i) {
+          return '\n                ' + (i > 0 ? '<tr style="background-color: ' + (j % 2 == 0 ? "white" : "#eee") + '">' : "") + '\n                  <td>' + _this3.renderEvidence(e.evidence) + '</td>\n                  <td>' + _this3.renderEvidence(e.go) + '</td>\n                ' + (i > 0 ? "</tr>" : "") + '\n              ';
+        }).join('') + '\n          </tr>\n        ';
+      }).join('') + '\n      </table>\n      <span\n        data-tooltip\n        aria-haspopup="true"\n        data-disable-hover="false"\n        class="has-tip tag secondary"\n        title="Required to pass a step"\n      >\n          Threshold: ' + property.threshold + '\n      </span>\n    </div>\n    ';
+    }
+  }, {
+    key: 'renderDatabaseLink',
+    value: function renderDatabaseLink(title, link) {
+      var a = link;
+      var parts = link.split(';').map(function (p) {
+        return p.trim();
+      });
+      if (parts[0] === 'KEGG') a = '<a\n        href="http://www.genome.jp/dbget-bin/www_bget?pathway:' + parts[1] + '"\n      >KEGG</a>';else if (parts[0] === 'IUBMB') a = '<a\n        href="http://www.chem.qmul.ac.uk/iubmb/enzyme/reaction/' + parts[1] + '/' + parts[2] + '.html"\n      >IUBMB</a>';else if (parts[0] === 'MetaCyc') a = '<a\n        href="https://metacyc.org/META/NEW-IMAGE?type=NIL&object=' + parts[1] + '"\n      >MetaCyc</a>';
+      return '<b>' + title + '</b>: ' + a;
+    }
+  }, {
+    key: 'getFirstEvidenceLink',
+    value: function getFirstEvidenceLink(evidence_list, text) {
+      if (evidence_list && evidence_list.length) {
+        var gp = evidence_list[0].evidence.trim().replace(';', '');
+        return '<a href="#' + gp + '">' + text + '</a>';
+      }
+      return '';
+    }
+  }, {
+    key: 'renderEvidence',
+    value: function renderEvidence(txt) {
+      if (!txt) return '<cite>None</cite>';
+      var parts = txt.split(';');
+      return parts.filter(function (p) {
+        return p.trim() !== '' && p.trim() !== 'sufficient';
+      }).map(function (t) {
+        var term = t.trim();
+        if (term.startsWith("GO:")) return '<a href="http://www.ebi.ac.uk/QuickGO/GTerm?id=' + term + '">' + term + '</a>';
+        if (term.startsWith("GenProp")) return '<a href="#' + term + '">' + term + '</a>';
+        if (term.startsWith("IPR")) return '<a href="https://www.ebi.ac.uk/interpro/entry/' + term + '">' + term + '</a>';
+        if (term.startsWith("TIGR")) return '<a href="http://www.jcvi.org/cgi-bin/tigrfams/HmmReportPage.cgi?acc=' + term + '">' + term + '</a>';else {
+          return term;
+        }
+      }).join(' - ');
+    }
+  }]);
+
+  return GenPropRenderer;
+}();
+
+var _createClass$3 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck$3(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var ViewerRenderer = function () {
+    function ViewerRenderer(github) {
+        _classCallCheck$3(this, ViewerRenderer);
+
+        this.github = github;
+    }
+
+    _createClass$3(ViewerRenderer, [{
+        key: "getViewerHTML",
+        value: function getViewerHTML() {
+            return "\n      <div class=\"container\">\n        <div class=\"top-block\">\n            <div id=\"gp-controllers\" class=\"top-controllers\">\n                <div>\n                    <header>Load Genome Properties</header>\n                    <ul>\n                        <li><label for=\"tax-search\">From Taxonomy:</label>\n                            <input type=\"text\" id=\"tax-search\">\n                        </li>\n                        <li>\n                            <label for=\"newfile\">From a File: </label>\n                            <input type=\"file\" id=\"newfile\"/>\n                        </li>\n                    </ul>\n                </div>\n                <div>\n                    <header>Filter Properties</header>\n                    <ul>\n                        <li><label for=\"gp-selector\">By Top level category:</label>\n                            <div id=\"gp-selector\" class=\"selector\"></div>\n                        </li>\n                        <li><label for=\"gp-filter\">by Text:</label>\n                            <input type=\"text\" id=\"gp-filter\">\n                        </li>\n                    </ul>\n                </div>\n                <div>\n                    <header>Labels</header>\n                    <ul>\n                      <li><label for=\"tax_label\">Species:</label>\n                          <select id=\"tax_label\">\n                              <option value=\"name\">Species</option>\n                              <option value=\"id\">Tax ID</option>\n                              <option value=\"both\">Both</option>\n                          </select>\n                      </li>\n                        <li><label for=\"gp_label\">Properties:</label>\n                            <select id=\"gp_label\">\n                                <option value=\"name\">Name</option>\n                                <option value=\"id\">ID</option>\n                                <option value=\"both\">Both</option>\n                            </select>\n                        </li>\n                    </ul>\n                </div>\n                <div class=\"gp-legends\">\n                    <header>Legends</header>\n                </div>\n                <a class=\"minimise\"></a>\n            </div>\n        </div>\n        <div id=\"gp-viewer\"></div>\n        <div class=\"info-tooltip\"></div>\n    </div>";
+        }
+    }, {
+        key: "loadViewer",
+        value: function loadViewer() {
+            var d3 = gpv.d3,
+                GenomePropertiesViewer = gpv.GenomePropertiesViewer,
+                viewer = new GenomePropertiesViewer({
+                element_selector: "#gp-viewer",
+                controller_element_selector: "#gp-selector",
+                server: this.github + "/docs/release/GP_calculation/SUMMARY_FILE_",
+                hierarchy_path: this.github + "/docs/release/hierarchy.json",
+                whitelist_path: "https://raw.githubusercontent.com/ProteinsWebTeam/genome-properties-viewer/master/test-files/gp_white_list.json",
+                server_tax: this.github + "/docs/release/taxonomy.json",
+                height: 400
+            });
+            window.viewer = viewer;
+            d3.select(".minimise").on("click", function (d, i, c) {
+                var on = d3.select(c[i]).classed("on");
+                d3.selectAll(".top-controllers>div").style("max-height", on ? "0px" : "500px").style("overflow", on ? null : "hidden").transition(200).style("max-height", on ? "500px" : "0px").style("opacity", on ? 1 : 0);
+                d3.selectAll(".top-controllers").transition(200).style("padding", on ? "5px" : "0px");
+                d3.select(c[i]).classed("on", !on);
+            });
+        }
+    }]);
+
+    return ViewerRenderer;
+}();
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var GenomePropertiesWebsite = function () {
   function GenomePropertiesWebsite(selector) {
@@ -3230,7 +3382,10 @@ var GenomePropertiesWebsite = function () {
       return _this.loadContent();
     };
     this.cache = {};
+    this.propertyRenderer = new GenPropRenderer();
+    this.viewerRenderer = new ViewerRenderer(this.github);
     this.loadContent();
+
     window.onclick = function (ev) {
       if (location.hash.match(/^#GenProp\d{4}$/) && ev.target.localName === "a" && ev.target.parentNode.localName === "li" && ev.target.parentNode.className.indexOf("tabs-title") > -1) {
         document.querySelectorAll("#step-tabs li a").forEach(function (e) {
@@ -3320,8 +3475,8 @@ var GenomePropertiesWebsite = function () {
           content = this.getBrowseTabs();
           break;
         case "#viewer":
-          this.container.innerHTML = this.getViewerHTML();
-          this.loadViewer();
+          this.container.innerHTML = this.viewerRenderer.getViewerHTML();
+          this.viewerRenderer.loadViewer();
           return;
         default:
           var propMatch = location.hash.match(/^#GenProp\d{4}/);
@@ -3373,133 +3528,13 @@ var GenomePropertiesWebsite = function () {
       return template_tag === null ? this.embbedInSection('loading...') : template_tag;
     }
   }, {
-    key: "renderReferences",
-    value: function renderReferences(references, accession) {
-      return "\n      <ul class=\"references\">\n        " + references.map(function (ref) {
-        return "\n            <li class=\"reference\" id=\"" + accession + "-" + ref.number + "\">\n              <span class=\"index\">[" + ref.number + "]</span>\n              <span class=\"authors\">" + ref.author + "</span>\n              <span class=\"title\">" + ref.title + "</span>\n              <span class=\"citation\">" + ref.citation + "</span>\n              <span class=\"reference_id\">" + ref.PMID + "</span>\n              <a target=\"_blank\" rel=\"noopener\" href=\"https://europepmc.org/abstract/MED/" + ref.PMID + "\">EuropePMC</a>\n            </li>\n        ";
-      }).join('') + "\n      </ul>\n    ";
-    }
-  }, {
-    key: "getFirstEvidenceLink",
-    value: function getFirstEvidenceLink(evidence_list, text) {
-      if (evidence_list && evidence_list.length) {
-        var gp = evidence_list[0].evidence.trim().replace(';', '');
-        return "<a href=\"#" + gp + "\">" + text + "</a>";
-      }
-      return '';
-    }
-  }, {
-    key: "renderChildren",
-    value: function renderChildren(property) {
-      var _this3 = this;
-
-      return "\n    <div>\n      <table class=\"no-stripe\" style=\" background-color:#86a5bb;\">\n        <tr style=\"background-color: #ddd\">\n          <th width=\"30%\">Property</td>\n          <th style=\"text-align: left;\">'Accession'</th>\n        </tr>\n\n        " + property.steps.map(function (step, j) {
-        return "\n          <tr style=\"background-color: " + (j % 2 == 0 ? "white" : "#eee") + "\">\n            <td rowspan=\"" + step.evidence_list.length + "\">\n              " + step.number + ". " + _this3.getFirstEvidenceLink(step.evidence_list, step.id) + "\n              " + (step.requires === "1" ? '<br/><span class="tag">Required</span>' : '') + "\n            </td>\n              " + step.evidence_list.map(function (e, i) {
-          return "\n                " + (i > 0 ? "<tr style=\"background-color: " + (j % 2 == 0 ? "white" : "#eee") + "\">" : "") + "\n                  <td>" + _this3.renderEvidence(e.evidence) + "</td>\n                " + (i > 0 ? "</tr>" : "") + "\n              ";
-        }).join('') + "\n          </tr>\n        ";
-      }).join('') + "\n      </table>\n    </div>\n    ";
-    }
-  }, {
-    key: "renderSteps",
-    value: function renderSteps(property) {
-      var _this4 = this;
-
-      return "\n    <div>\n      <h4>Steps</h4>\n      <table class=\"no-stripe\" style=\" background-color:#86a5bb;\">\n        <tr style=\"background-color: #ddd\">\n          <th width=\"30%\">Step</td>\n          <th style=\"text-align: left;\">Evidence</th>\n          <th style=\"text-align: left;\">Go Terms</th>\n        </tr>\n\n        " + property.steps.map(function (step, j) {
-        return "\n          <tr style=\"background-color: " + (j % 2 == 0 ? "white" : "#eee") + "\">\n            <td rowspan=\"" + step.evidence_list.length + "\">" + step.number + ". " + step.id + "\n              " + (step.requires === "1" ? '<br/><span class="tag">Required</span>' : '') + "\n            </td>\n              " + step.evidence_list.map(function (e, i) {
-          return "\n                " + (i > 0 ? "<tr style=\"background-color: " + (j % 2 == 0 ? "white" : "#eee") + "\">" : "") + "\n                  <td>" + _this4.renderEvidence(e.evidence) + "</td>\n                  <td>" + _this4.renderEvidence(e.go) + "</td>\n                " + (i > 0 ? "</tr>" : "") + "\n              ";
-        }).join('') + "\n          </tr>\n        ";
-      }).join('') + "\n      </table>\n      <span\n        data-tooltip\n        aria-haspopup=\"true\"\n        data-disable-hover=\"false\"\n        class=\"has-tip tag secondary\"\n        title=\"Required to pass a step\"\n      >\n          Threshold: " + property.threshold + "\n      </span>\n    </div>\n    ";
-    }
-  }, {
-    key: "renderGenProp",
-    value: function renderGenProp(property) {
-      var _this5 = this;
-
-      var isCategory = property.type === 'CATEGORY';
-      return "\n    <h2>" + property.accession + " - " + property.name + "</h2>\n      <span class=\"tag\">Category: " + property.type + "</span>\n      <br/><br/>\n      <div>\n        <h4>Description</h4>\n        <p>" + this.renderDescription(property.description, property.accession) + "</p>\n      </div>\n      <div>\n        <h4>References</h4>\n        " + (property.references && property.references.length ? this.renderReferences(property.references, property.accession) : '<cite>None</cite>') + "\n      </div>\n      <div>\n        " + (isCategory ? this.renderChildren(property) : this.renderSteps(property)) + "\n      </div>\n      <div>\n        <h4>Database Links</h4>\n        " + (property.references && property.references.length ? "\n          <ul>\n            " + property.databases.map(function (db) {
-        return "\n              <li>" + _this5.renderDatabaseLink(db.title, db.link) + "</li>\n            ";
-      }).join('') + "\n          </ul>\n          " : '<cite>None</cite>') + "\n      </div>\n    ";
-    }
-  }, {
-    key: "renderDescription",
-    value: function renderDescription(txt, acc) {
-      return txt.replace(/\[(\d+)\]/g, "<a href=\"#" + acc + "-$1\">[$1]</a>");
-    }
-  }, {
-    key: "renderDatabaseLink",
-    value: function renderDatabaseLink(title, link) {
-      var a = link;
-      var parts = link.split(';').map(function (p) {
-        return p.trim();
-      });
-      if (parts[0] === 'KEGG') a = "<a\n        href=\"http://www.genome.jp/dbget-bin/www_bget?pathway:" + parts[1] + "\"\n      >KEGG</a>";else if (parts[0] === 'IUBMB') a = "<a\n        href=\"http://www.chem.qmul.ac.uk/iubmb/enzyme/reaction/" + parts[1] + "/" + parts[2] + ".html\"\n      >IUBMB</a>";else if (parts[0] === 'MetaCyc') a = "<a\n        href=\"https://metacyc.org/META/NEW-IMAGE?type=NIL&object=" + parts[1] + "\"\n      >MetaCyc</a>";
-      return "<b>" + title + "</b>: " + a;
-    }
-  }, {
-    key: "renderEvidence",
-    value: function renderEvidence(txt) {
-      if (!txt) return '<cite>None</cite>';
-      var parts = txt.split(';');
-      return parts.filter(function (p) {
-        return p.trim() !== '' && p.trim() !== 'sufficient';
-      }).map(function (t) {
-        var term = t.trim();
-        if (term.startsWith("GO:")) return "<a href=\"http://www.ebi.ac.uk/QuickGO/GTerm?id=" + term + "\">" + term + "</a>";
-        if (term.startsWith("GenProp")) return "<a href=\"#" + term + "\">" + term + "</a>";
-        if (term.startsWith("IPR")) return "<a href=\"https://www.ebi.ac.uk/interpro/entry/" + term + "\">" + term + "</a>";
-        if (term.startsWith("TIGR")) return "<a href=\"http://www.jcvi.org/cgi-bin/tigrfams/HmmReportPage.cgi?acc=" + term + "\">" + term + "</a>";else {
-          return term;
-        }
-      }).join(' - ');
-    }
-  }, {
-    key: "renderGenPropHierarchy",
-    value: function renderGenPropHierarchy(hierarchy) {
-      var _this6 = this;
-
-      var expanded = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-      var level = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
-
-      // console.log(hierarchy)
-      return "\n    <div class=\"genome-property " + (expanded ? 'expanded' : '') + "\">\n      <header>\n        " + (!hierarchy.children.length ? '・' : "\n        <a style=\"border: 0;color: darkred;\" class=\"expander\">" + (expanded ? '▾' : '▸') + "</a>\n        ") + "\n        <span class=\"genprop-label\" text=\"" + hierarchy.id + " " + hierarchy.name + "\">\n          <a href=\"#" + hierarchy.id + "\">" + hierarchy.id + "</a>:\n          " + hierarchy.name + "\n        </span>\n      </header>\n      " + (!hierarchy.children.length ? '' : "\n        <div class=\"children\" style=\"\n          margin-left: " + level * 10 + "px;\n        \">\n          " + hierarchy.children.map(function (child) {
-        return _this6.renderGenPropHierarchy(child, false, level + 1);
-      }).join('') + "\n        </div>\n      ") + "\n    </div>\n    ";
-    }
-  }, {
-    key: "getViewerHTML",
-    value: function getViewerHTML() {
-      return "\n      <div class=\"container\">\n        <div class=\"top-block\">\n            <div id=\"gp-controllers\" class=\"top-controllers\">\n                <div>\n                    <header>Load Genome Properties</header>\n                    <ul>\n                        <li><label for=\"tax-search\">From Taxonomy:</label>\n                            <input type=\"text\" id=\"tax-search\">\n                        </li>\n                        <li>\n                            <label for=\"newfile\">From a File: </label>\n                            <input type=\"file\" id=\"newfile\"/>\n                        </li>\n                    </ul>\n                </div>\n                <div>\n                    <header>Filter Properties</header>\n                    <ul>\n                        <li><label for=\"gp-selector\">By Top level category:</label>\n                            <div id=\"gp-selector\" class=\"selector\"></div>\n                        </li>\n                        <li><label for=\"gp-filter\">by Text:</label>\n                            <input type=\"text\" id=\"gp-filter\">\n                        </li>\n                    </ul>\n                </div>\n                <div>\n                    <header>Labels</header>\n                    <ul>\n                      <li><label for=\"tax_label\">Species:</label>\n                          <select id=\"tax_label\">\n                              <option value=\"name\">Species</option>\n                              <option value=\"id\">Tax ID</option>\n                              <option value=\"both\">Both</option>\n                          </select>\n                      </li>\n                        <li><label for=\"gp_label\">Properties:</label>\n                            <select id=\"gp_label\">\n                                <option value=\"name\">Name</option>\n                                <option value=\"id\">ID</option>\n                                <option value=\"both\">Both</option>\n                            </select>\n                        </li>\n                    </ul>\n                </div>\n                <div class=\"gp-legends\">\n                    <header>Legends</header>\n                </div>\n                <a class=\"minimise\"></a>\n            </div>\n        </div>\n        <div id=\"gp-viewer\"></div>\n        <div class=\"info-tooltip\"></div>\n    </div>";
-    }
-  }, {
-    key: "loadViewer",
-    value: function loadViewer() {
-      var d3 = gpv.d3,
-          GenomePropertiesViewer = gpv.GenomePropertiesViewer,
-          viewer = new GenomePropertiesViewer({
-        element_selector: "#gp-viewer",
-        controller_element_selector: "#gp-selector",
-        server: this.github + "/docs/release/GP_calculation/SUMMARY_FILE_",
-        hierarchy_path: this.github + "/docs/release/hierarchy.json",
-        whitelist_path: "https://raw.githubusercontent.com/ProteinsWebTeam/genome-properties-viewer/master/test-files/gp_white_list.json",
-        server_tax: this.github + "/docs/release/taxonomy.json",
-        height: 400
-      });
-      window.viewer = viewer;
-      d3.select(".minimise").on("click", function (d, i, c) {
-        var on = d3.select(c[i]).classed("on");
-        d3.selectAll(".top-controllers>div").style("max-height", on ? "0px" : "500px").style("overflow", on ? null : "hidden").transition(200).style("max-height", on ? "500px" : "0px").style("opacity", on ? 1 : 0);
-        d3.selectAll(".top-controllers").transition(200).style("padding", on ? "5px" : "0px");
-        d3.select(c[i]).classed("on", !on);
-      });
-    }
-  }, {
     key: "getGenProp",
     value: function getGenProp(acc) {
-      var _this7 = this;
+      var _this3 = this;
 
       var url = this.github + "/data/" + acc + "/DESC";
       return this.getResource(acc, url, function (txt) {
-        return _this7.renderGenProp(parseGenProp(txt));
+        return _this3.propertyRenderer.renderGenProp(parseGenProp(txt));
       });
     }
   }, {
@@ -3555,19 +3590,10 @@ var GenomePropertiesWebsite = function () {
       }).join('') + "\n      </ul>\n    </div>";
     }
   }, {
-    key: "renderGenPropHierarchyPage",
-    value: function renderGenPropHierarchyPage(txt) {
-      var payload = "<div>\n                    <input type=\"text\" id=\"genprop-searcher\" placeholder=\"Search\" />\n                    <a class=\"expand-all\">Expand All</a> |\n                    <a class=\"collapse-all\">Collapse All</a>\n                  </<div><br/><br/>";
-      payload += this.renderGenPropHierarchy(JSON.parse(txt));
-      return payload;
-    }
-  }, {
     key: "getProps",
     value: function getProps() {
-      var _this8 = this;
-
       return this.getResource('props', this.github + "/docs/release/hierarchy.json", function (txt) {
-        return _this8.renderGenPropHierarchyPage(txt);
+        return renderGenPropHierarchyPage(txt);
       });
     }
   }]);

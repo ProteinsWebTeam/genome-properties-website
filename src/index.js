@@ -1,33 +1,14 @@
 import parseGenProp from "./genprop-parser";
 import {RstRenderer} from "./rst-renderer";
+import {
+  renderGenPropHierarchyPage,
+  expandElement,
+  collapseElement,
+  searchHierarchy
+} from "./genprop-hierarchy"
+import GenPropRenderer from "./genprop-property";
+import ViewerRenderer from "./genprop-viewer";
 
-const expandElement = element => {
-  element.innerHTML = '▾';
-  if (element.parentNode.parentNode)
-    element.parentNode.parentNode.classList.add("expanded");
-}
-const collapseElement = element => {
-  element.innerHTML = '▸';
-  element.parentNode.parentNode.classList.remove("expanded");
-}
-const searchHierarchy = term => {
-  document.querySelectorAll(".genome-property a.expander")
-    .forEach(e => collapseElement(e));
-  document.querySelectorAll('span.genprop-label')
-    .forEach(e => e.classList.remove("search-match"));
-  if (term.trim()!=='')
-    document.querySelectorAll(`span.genprop-label[text*=${term}]`)
-      .forEach(e => {
-        e.classList.add("search-match");
-        expandParents(e.parentNode.parentNode);
-      });
-}
-const expandParents = element => {
-  if (element.parentNode.parentNode.classList.contains('genome-property')){
-    element.parentNode.parentNode.classList.add("expanded");
-    expandParents(element.parentNode.parentNode);
-  }
-}
 class GenomePropertiesWebsite {
   constructor(selector) {
     this.selector = selector;
@@ -35,7 +16,10 @@ class GenomePropertiesWebsite {
     this.github = "https://raw.githubusercontent.com/rdfinn/genome-properties/master";
     window.onhashchange = () => this.loadContent();
     this.cache = {};
+    this.propertyRenderer = new GenPropRenderer();
+    this.viewerRenderer = new ViewerRenderer(this.github);
     this.loadContent();
+
     window.onclick = function(ev){
       if (location.hash.match(/^#GenProp\d{4}$/) &&
           ev.target.localName === "a" &&
@@ -121,8 +105,8 @@ class GenomePropertiesWebsite {
         content = this.getBrowseTabs();
         break;
       case "#viewer":
-        this.container.innerHTML = this.getViewerHTML();
-        this.loadViewer();
+        this.container.innerHTML = this.viewerRenderer.getViewerHTML();
+        this.viewerRenderer.loadViewer();
         return;
       default:
         const propMatch = location.hash.match(/^#GenProp\d{4}/)
@@ -170,275 +154,11 @@ class GenomePropertiesWebsite {
       .catch(a=>console.error(a));
     return template_tag===null ? this.embbedInSection('loading...') : template_tag;
   }
-  renderReferences(references, accession){
-    return `
-      <ul class="references">
-        ${references.map(ref => `
-            <li class="reference" id="${accession}-${ref.number}">
-              <span class="index">[${ref.number}]</span>
-              <span class="authors">${ref.author}</span>
-              <span class="title">${ref.title}</span>
-              <span class="citation">${ref.citation}</span>
-              <span class="reference_id">${ref.PMID}</span>
-              <a target="_blank" rel="noopener" href="https://europepmc.org/abstract/MED/${ref.PMID}">EuropePMC</a>
-            </li>
-        `).join('')}
-      </ul>
-    `;
-  }
-  getFirstEvidenceLink(evidence_list, text){
-    if (evidence_list && evidence_list.length) {
-      const gp = evidence_list[0].evidence.trim().replace(';', '');
-      return `<a href="#${gp}">${text}</a>`;
-    }
-    return '';
-  }
-  renderChildren(property){
-    return `
-    <div>
-      <table class="no-stripe" style=" background-color:#86a5bb;">
-        <tr style="background-color: #ddd">
-          <th width="30%">Property</td>
-          <th style="text-align: left;">'Accession'</th>
-        </tr>
-
-        ${property.steps.map((step,j) => `
-          <tr style="background-color: ${j%2==0?"white":"#eee"}">
-            <td rowspan="${step.evidence_list.length}">
-              ${step.number}. ${this.getFirstEvidenceLink(step.evidence_list, step.id)}
-              ${step.requires==="1"?'<br/><span class="tag">Required</span>':''}
-            </td>
-              ${step.evidence_list.map((e,i) => `
-                ${i>0?`<tr style="background-color: ${j%2==0?"white":"#eee"}">`:""}
-                  <td>${this.renderEvidence(e.evidence)}</td>
-                ${i>0?"</tr>":""}
-              `).join('')}
-          </tr>
-        `).join('')}
-      </table>
-    </div>
-    `;
-  }
-  renderSteps(property){
-    return `
-    <div>
-      <h4>Steps</h4>
-      <table class="no-stripe" style=" background-color:#86a5bb;">
-        <tr style="background-color: #ddd">
-          <th width="30%">Step</td>
-          <th style="text-align: left;">Evidence</th>
-          <th style="text-align: left;">Go Terms</th>
-        </tr>
-
-        ${property.steps.map((step,j) => `
-          <tr style="background-color: ${j%2==0?"white":"#eee"}">
-            <td rowspan="${step.evidence_list.length}">${step.number}. ${step.id}
-              ${step.requires==="1"?'<br/><span class="tag">Required</span>':''}
-            </td>
-              ${step.evidence_list.map((e,i) => `
-                ${i>0?`<tr style="background-color: ${j%2==0?"white":"#eee"}">`:""}
-                  <td>${this.renderEvidence(e.evidence)}</td>
-                  <td>${this.renderEvidence(e.go)}</td>
-                ${i>0?"</tr>":""}
-              `).join('')}
-          </tr>
-        `).join('')}
-      </table>
-      <span
-        data-tooltip
-        aria-haspopup="true"
-        data-disable-hover="false"
-        class="has-tip tag secondary"
-        title="Required to pass a step"
-      >
-          Threshold: ${property.threshold}
-      </span>
-    </div>
-    `;
-  }
-  renderGenProp(property){
-    const isCategory = property.type === 'CATEGORY';
-    return `
-    <h2>${property.accession} - ${property.name}</h2>
-      <span class="tag">Category: ${property.type}</span>
-      <br/><br/>
-      <div>
-        <h4>Description</h4>
-        <p>${this.renderDescription(property.description, property.accession)}</p>
-      </div>
-      <div>
-        <h4>References</h4>
-        ${property.references && property.references.length ?
-          this.renderReferences(property.references, property.accession) :
-          '<cite>None</cite>'
-        }
-      </div>
-      <div>
-        ${isCategory ? this.renderChildren(property) : this.renderSteps(property)}
-      </div>
-      <div>
-        <h4>Database Links</h4>
-        ${property.references && property.references.length ? `
-          <ul>
-            ${property.databases.map(db => `
-              <li>${this.renderDatabaseLink(db.title, db.link)}</li>
-            `).join('')}
-          </ul>
-          ` : '<cite>None</cite>'
-        }
-      </div>
-    `;
-  }
-  renderDescription(txt, acc){
-    return txt.replace(/\[(\d+)\]/g, `<a href="#${acc}-$1">[$1]</a>`);
-  }
-  renderDatabaseLink(title, link){
-    let a = link;
-    const parts = link.split(';').map(p => p.trim());
-    if (parts[0] === 'KEGG')
-      a = `<a
-        href="http://www.genome.jp/dbget-bin/www_bget?pathway:${parts[1]}"
-      >KEGG</a>`;
-    else if (parts[0] === 'IUBMB')
-      a = `<a
-        href="http://www.chem.qmul.ac.uk/iubmb/enzyme/reaction/${parts[1]}/${parts[2]}.html"
-      >IUBMB</a>`
-    else if (parts[0] === 'MetaCyc')
-      a = `<a
-        href="https://metacyc.org/META/NEW-IMAGE?type=NIL&object=${parts[1]}"
-      >MetaCyc</a>`
-    return `<b>${title}</b>: ${a}`;
-  }
-  renderEvidence(txt){
-    if (!txt) return '<cite>None</cite>';
-    const parts = txt.split(';');
-    return parts
-      .filter(p => p.trim()!=='' && p.trim()!=='sufficient')
-      .map(t => {
-        const term = t.trim();
-        if (term.startsWith("GO:"))
-          return `<a href="http://www.ebi.ac.uk/QuickGO/GTerm?id=${term}">${term}</a>`
-        if (term.startsWith("GenProp"))
-          return `<a href="#${term}">${term}</a>`
-        if (term.startsWith("IPR"))
-          return `<a href="https://www.ebi.ac.uk/interpro/entry/${term}">${term}</a>`
-        if (term.startsWith("TIGR"))
-          return `<a href="http://www.jcvi.org/cgi-bin/tigrfams/HmmReportPage.cgi?acc=${term}">${term}</a>`
-        else {
-          return term;
-        }
-      }).join(' - ')
-  }
-  renderGenPropHierarchy(hierarchy, expanded=true, level=1){
-    // console.log(hierarchy)
-    return `
-    <div class="genome-property ${expanded?'expanded':''}">
-      <header>
-        ${!hierarchy.children.length?'・':`
-        <a style="border: 0;color: darkred;" class="expander">${expanded?'▾':'▸'}</a>
-        `}
-        <span class="genprop-label" text="${hierarchy.id} ${hierarchy.name}">
-          <a href="#${hierarchy.id}">${hierarchy.id}</a>:
-          ${hierarchy.name}
-        </span>
-      </header>
-      ${!hierarchy.children.length?'':`
-        <div class="children" style="
-          margin-left: ${level*10}px;
-        ">
-          ${hierarchy.children
-            .map(child => this.renderGenPropHierarchy(child, false, level+1))
-            .join('')}
-        </div>
-      `}
-    </div>
-    `;
-  }
-  getViewerHTML() {
-    return `
-      <div class="container">
-        <div class="top-block">
-            <div id="gp-controllers" class="top-controllers">
-                <div>
-                    <header>Load Genome Properties</header>
-                    <ul>
-                        <li><label for="tax-search">From Taxonomy:</label>
-                            <input type="text" id="tax-search">
-                        </li>
-                        <li>
-                            <label for="newfile">From a File: </label>
-                            <input type="file" id="newfile"/>
-                        </li>
-                    </ul>
-                </div>
-                <div>
-                    <header>Filter Properties</header>
-                    <ul>
-                        <li><label for="gp-selector">By Top level category:</label>
-                            <div id="gp-selector" class="selector"></div>
-                        </li>
-                        <li><label for="gp-filter">by Text:</label>
-                            <input type="text" id="gp-filter">
-                        </li>
-                    </ul>
-                </div>
-                <div>
-                    <header>Labels</header>
-                    <ul>
-                      <li><label for="tax_label">Species:</label>
-                          <select id="tax_label">
-                              <option value="name">Species</option>
-                              <option value="id">Tax ID</option>
-                              <option value="both">Both</option>
-                          </select>
-                      </li>
-                        <li><label for="gp_label">Properties:</label>
-                            <select id="gp_label">
-                                <option value="name">Name</option>
-                                <option value="id">ID</option>
-                                <option value="both">Both</option>
-                            </select>
-                        </li>
-                    </ul>
-                </div>
-                <div class="gp-legends">
-                    <header>Legends</header>
-                </div>
-                <a class="minimise"></a>
-            </div>
-        </div>
-        <div id="gp-viewer"></div>
-        <div class="info-tooltip"></div>
-    </div>`
-  }
-  loadViewer(){
-    var d3 = gpv.d3,
-            GenomePropertiesViewer = gpv.GenomePropertiesViewer,
-            viewer = new GenomePropertiesViewer({
-                element_selector: "#gp-viewer",
-                controller_element_selector: "#gp-selector",
-                server: `${this.github}/docs/release/GP_calculation/SUMMARY_FILE_`,
-                hierarchy_path: `${this.github}/docs/release/hierarchy.json`,
-                whitelist_path: "https://raw.githubusercontent.com/ProteinsWebTeam/genome-properties-viewer/master/test-files/gp_white_list.json",
-                server_tax: `${this.github}/docs/release/taxonomy.json`,
-                height: 400
-            });
-      window.viewer = viewer;
-      d3.select(".minimise").on("click",(d,i,c)=>{
-          const on = d3.select(c[i]).classed("on");
-          d3.selectAll(".top-controllers>div")
-                  .style("max-height", on?"0px":"500px")
-                  .style("overflow", on?null:"hidden")
-                  .transition(200)
-                  .style("max-height", on?"500px":"0px")
-                  .style("opacity", on?1:0);
-          d3.selectAll(".top-controllers").transition(200).style("padding", on?"5px":"0px");
-          d3.select(c[i]).classed("on", !on);
-      });
-  }
   getGenProp(acc){
     const url = `${this.github}/data/${acc}/DESC`
-    return this.getResource(acc, url, txt => this.renderGenProp(parseGenProp(txt)))
+    return this.getResource(acc, url,
+      txt => this.propertyRenderer.renderGenProp(parseGenProp(txt))
+    )
   }
   getHome(){
     // return this.markup2html(text);
@@ -513,18 +233,9 @@ class GenomePropertiesWebsite {
       </ul>
     </div>`;
   }
-  renderGenPropHierarchyPage(txt){
-    let payload = `<div>
-                    <input type="text" id="genprop-searcher" placeholder="Search" />
-                    <a class="expand-all">Expand All</a> |
-                    <a class="collapse-all">Collapse All</a>
-                  </<div><br/><br/>`;
-    payload += this.renderGenPropHierarchy(JSON.parse(txt));
-    return payload;
-  }
   getProps(){
     return this.getResource('props', `${this.github}/docs/release/hierarchy.json`, txt => {
-      return this.renderGenPropHierarchyPage(txt)
+      return renderGenPropHierarchyPage(txt)
     })
   }
 }
