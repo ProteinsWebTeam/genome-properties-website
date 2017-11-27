@@ -61,3 +61,7 @@ ul.references li .title {font-weight: bold;}
 .tag {
   margin-left: 1.5em;
 }
+
+.search-match {
+  background-color: yellow;
+}

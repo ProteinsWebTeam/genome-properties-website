@@ -1,6 +1,33 @@
 import parseGenProp from "./genprop-parser";
 import {RstRenderer} from "./rst-renderer";
 
+const expandElement = element => {
+  element.innerHTML = '▾';
+  if (element.parentNode.parentNode)
+    element.parentNode.parentNode.classList.add("expanded");
+}
+const collapseElement = element => {
+  element.innerHTML = '▸';
+  element.parentNode.parentNode.classList.remove("expanded");
+}
+const searchHierarchy = term => {
+  document.querySelectorAll(".genome-property a.expander")
+    .forEach(e => collapseElement(e));
+  document.querySelectorAll('span.genprop-label')
+    .forEach(e => e.classList.remove("search-match"));
+  if (term.trim()!=='')
+    document.querySelectorAll(`span.genprop-label[text*=${term}]`)
+      .forEach(e => {
+        e.classList.add("search-match");
+        expandParents(e.parentNode.parentNode);
+      });
+}
+const expandParents = element => {
+  if (element.parentNode.parentNode.classList.contains('genome-property')){
+    element.parentNode.parentNode.classList.add("expanded");
+    expandParents(element.parentNode.parentNode);
+  }
+}
 class GenomePropertiesWebsite {
   constructor(selector) {
     this.selector = selector;
@@ -29,12 +56,20 @@ class GenomePropertiesWebsite {
       ){
         const expanded =ev.target.parentNode.parentNode.className.indexOf("expanded") > -1;
         if (expanded){
-          ev.target.innerHTML = '▸';
-          ev.target.parentNode.parentNode.classList.remove("expanded");
+          collapseElement(ev.target);
         } else {
-          ev.target.innerHTML = '▾';
-          ev.target.parentNode.parentNode.classList.add("expanded");
+          expandElement(ev.target);
         }
+      } else if (ev.target.localName === "a" &&
+        ev.target.className.indexOf("expand-all")>-1
+      ){
+        document.querySelectorAll(".genome-property a.expander")
+          .forEach(e => expandElement(e));
+      } else if (ev.target.localName === "a" &&
+        ev.target.className.indexOf("collapse-all")>-1
+      ){
+        document.querySelectorAll(".genome-property a.expander")
+          .forEach(e => collapseElement(e));
       }
     }
     window.onchange = function(ev){
@@ -102,6 +137,15 @@ class GenomePropertiesWebsite {
       this.cache[location.hash] = content;
     }
     this.container.innerHTML = content;
+    $('.has-tip').foundation();
+
+    let timeoutID =null;
+    $('#genprop-searcher').on('input',function(e){
+      if (timeoutID != null)
+        window.clearTimeout(timeoutID);
+      const term = $(this).val();
+      timeoutID = window.setTimeout(() => searchHierarchy(term), 500);
+    });
 
   }
   embbedInSection(html){
@@ -291,9 +335,12 @@ class GenomePropertiesWebsite {
     <div class="genome-property ${expanded?'expanded':''}">
       <header>
         ${!hierarchy.children.length?'・':`
-        <a style="border: 0;color: darkred;">${expanded?'▾':'▸'}</a>
+        <a style="border: 0;color: darkred;" class="expander">${expanded?'▾':'▸'}</a>
         `}
-        <a href="#${hierarchy.id}">${hierarchy.id}</a>: ${hierarchy.name}
+        <span class="genprop-label" text="${hierarchy.id} ${hierarchy.name}">
+          <a href="#${hierarchy.id}">${hierarchy.id}</a>:
+          ${hierarchy.name}
+        </span>
       </header>
       ${!hierarchy.children.length?'':`
         <div class="children" style="
@@ -466,9 +513,18 @@ class GenomePropertiesWebsite {
       </ul>
     </div>`;
   }
+  renderGenPropHierarchyPage(txt){
+    let payload = `<div>
+                    <input type="text" id="genprop-searcher" placeholder="Search" />
+                    <a class="expand-all">Expand All</a> |
+                    <a class="collapse-all">Collapse All</a>
+                  </<div><br/><br/>`;
+    payload += this.renderGenPropHierarchy(JSON.parse(txt));
+    return payload;
+  }
   getProps(){
     return this.getResource('props', `${this.github}/docs/release/hierarchy.json`, txt => {
-      return this.renderGenPropHierarchy(JSON.parse(txt))
+      return this.renderGenPropHierarchyPage(txt)
     })
   }
 }
