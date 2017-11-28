@@ -3,7 +3,7 @@ class GenPropRenderer {
     const isCategory = property.type === 'CATEGORY';
     return `
       <h2>${property.accession} - ${property.name}</h2>
-      <span class="tag">Category: ${property.type}</span>
+      <span class="tag">Type: ${property.type}</span>
       <br/><br/>
       <div>Author: ${property.author}</div>
       <br/>
@@ -23,7 +23,7 @@ class GenPropRenderer {
       </div>
       <div>
         <h4>Database Links</h4>
-        ${property.references && property.references.length ? `
+        ${property.databases && property.databases.length ? `
           <ul>
             ${property.databases.map(db => `
               <li>${this.renderDatabaseLink(db.title, db.link)}</li>
@@ -56,17 +56,18 @@ class GenPropRenderer {
   renderChildren(property){
     return `
     <div>
+      <h4>Genome properties</h4>
       <table class="no-stripe" style=" background-color:#86a5bb;">
         <tr style="background-color: #ddd">
           <th width="30%">Property</td>
-          <th style="text-align: left;">'Accession'</th>
+          <th style="text-align: left;">Accession</th>
         </tr>
 
         ${property.steps.map((step,j) => `
           <tr style="background-color: ${j%2==0?"white":"#eee"}">
             <td rowspan="${step.evidence_list.length}">
               ${step.number}. ${this.getFirstEvidenceLink(step.evidence_list, step.id)}
-              ${step.requires==="1"?'<br/><span class="tag">Required</span>':''}
+              ${step.requires!=="1"?'<br/><span class="tag secondary">Optional</span>':''}
             </td>
               ${step.evidence_list.map((e,i) => `
                 ${i>0?`<tr style="background-color: ${j%2==0?"white":"#eee"}">`:""}
@@ -93,7 +94,7 @@ class GenPropRenderer {
         ${property.steps.map((step,j) => `
           <tr style="background-color: ${j%2==0?"white":"#eee"}">
             <td rowspan="${step.evidence_list.length}">${step.number}. ${step.id}
-              ${step.requires==="1"?'<br/><span class="tag">Required</span>':''}
+              ${step.requires!=="1"?'<br/><span class="tag secondary">Optional</span>':''}
             </td>
               ${step.evidence_list.map((e,i) => `
                 ${i>0?`<tr style="background-color: ${j%2==0?"white":"#eee"}">`:""}
@@ -109,7 +110,7 @@ class GenPropRenderer {
         aria-haspopup="true"
         data-disable-hover="false"
         class="has-tip tag secondary"
-        title="Required to pass a step"
+        title="The threshold value is the number of required (non-optional) steps found, above which a value of PARTIAL is set for the property. Partial can be thought of as some evidence of the property. A full YES state is only defined where ALL required steps are found."
       >
           Threshold: ${property.threshold}
       </span>

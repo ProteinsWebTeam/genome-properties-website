@@ -3218,7 +3218,7 @@ var renderGenPropHierarchy = function renderGenPropHierarchy(hierarchy) {
   var level = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
 
   // console.log(hierarchy)
-  return '\n  <div class="genome-property ' + (expanded ? 'expanded' : '') + '">\n    <header>\n      ' + (!hierarchy.children.length ? '・' : '\n      <a style="border: 0;color: darkred;" class="expander">' + (expanded ? '▾' : '▸') + '</a>\n      ') + '\n      <span class="genprop-label" text="' + hierarchy.id + ' ' + hierarchy.name + '">\n        <a href="#' + hierarchy.id + '">' + hierarchy.id + '</a>:\n        ' + hierarchy.name + '\n      </span>\n    </header>\n    ' + (!hierarchy.children.length ? '' : '\n      <div class="children" style="\n        margin-left: ' + level * 10 + 'px;\n      ">\n        ' + hierarchy.children.map(function (child) {
+  return '\n  <div class="genome-property ' + (expanded ? 'expanded' : '') + '">\n    <header>\n      ' + (!hierarchy.children.length ? '・' : '\n      <a style="border: 0;color: darkred;" class="expander">' + (expanded ? '▾' : '▸') + '</a>\n      ') + '\n      <span class="genprop-label" text="' + hierarchy.id + ' ' + hierarchy.name + '">\n        <a href="#' + hierarchy.id + '">' + hierarchy.id + '</a>:\n        <a href="#' + hierarchy.id + '">' + hierarchy.name + '</a>\n      </span>\n    </header>\n    ' + (!hierarchy.children.length ? '' : '\n      <div class="children" style="\n        margin-left: ' + level * 10 + 'px;\n      ">\n        ' + hierarchy.children.map(function (child) {
     return renderGenPropHierarchy(child, false, level + 1);
   }).join('') + '\n      </div>\n    ') + '\n  </div>\n  ';
 };
@@ -3243,7 +3243,7 @@ var GenPropRenderer = function () {
       var _this = this;
 
       var isCategory = property.type === 'CATEGORY';
-      return '\n      <h2>' + property.accession + ' - ' + property.name + '</h2>\n      <span class="tag">Category: ' + property.type + '</span>\n      <br/><br/>\n      <div>Author: ' + property.author + '</div>\n      <br/>\n      <div>\n        <h4>Description</h4>\n        <p>' + this.renderDescription(property.description, property.accession) + '</p>\n      </div>\n      <div>\n        <h4>References</h4>\n        ' + (property.references && property.references.length ? this.renderReferences(property.references, property.accession) : '<cite>None</cite>') + '\n      </div>\n      <div>\n        ' + (isCategory ? this.renderChildren(property) : this.renderSteps(property)) + '\n      </div>\n      <div>\n        <h4>Database Links</h4>\n        ' + (property.references && property.references.length ? '\n          <ul>\n            ' + property.databases.map(function (db) {
+      return '\n      <h2>' + property.accession + ' - ' + property.name + '</h2>\n      <span class="tag">Type: ' + property.type + '</span>\n      <br/><br/>\n      <div>Author: ' + property.author + '</div>\n      <br/>\n      <div>\n        <h4>Description</h4>\n        <p>' + this.renderDescription(property.description, property.accession) + '</p>\n      </div>\n      <div>\n        <h4>References</h4>\n        ' + (property.references && property.references.length ? this.renderReferences(property.references, property.accession) : '<cite>None</cite>') + '\n      </div>\n      <div>\n        ' + (isCategory ? this.renderChildren(property) : this.renderSteps(property)) + '\n      </div>\n      <div>\n        <h4>Database Links</h4>\n        ' + (property.databases && property.databases.length ? '\n          <ul>\n            ' + property.databases.map(function (db) {
         return '\n              <li>' + _this.renderDatabaseLink(db.title, db.link) + '</li>\n            ';
       }).join('') + '\n          </ul>\n          ' : '<cite>None</cite>') + '\n      </div>\n    ';
     }
@@ -3264,8 +3264,8 @@ var GenPropRenderer = function () {
     value: function renderChildren(property) {
       var _this2 = this;
 
-      return '\n    <div>\n      <table class="no-stripe" style=" background-color:#86a5bb;">\n        <tr style="background-color: #ddd">\n          <th width="30%">Property</td>\n          <th style="text-align: left;">\'Accession\'</th>\n        </tr>\n\n        ' + property.steps.map(function (step, j) {
-        return '\n          <tr style="background-color: ' + (j % 2 == 0 ? "white" : "#eee") + '">\n            <td rowspan="' + step.evidence_list.length + '">\n              ' + step.number + '. ' + _this2.getFirstEvidenceLink(step.evidence_list, step.id) + '\n              ' + (step.requires === "1" ? '<br/><span class="tag">Required</span>' : '') + '\n            </td>\n              ' + step.evidence_list.map(function (e, i) {
+      return '\n    <div>\n      <h4>Genome properties</h4>\n      <table class="no-stripe" style=" background-color:#86a5bb;">\n        <tr style="background-color: #ddd">\n          <th width="30%">Property</td>\n          <th style="text-align: left;">Accession</th>\n        </tr>\n\n        ' + property.steps.map(function (step, j) {
+        return '\n          <tr style="background-color: ' + (j % 2 == 0 ? "white" : "#eee") + '">\n            <td rowspan="' + step.evidence_list.length + '">\n              ' + step.number + '. ' + _this2.getFirstEvidenceLink(step.evidence_list, step.id) + '\n              ' + (step.requires !== "1" ? '<br/><span class="tag secondary">Optional</span>' : '') + '\n            </td>\n              ' + step.evidence_list.map(function (e, i) {
           return '\n                ' + (i > 0 ? '<tr style="background-color: ' + (j % 2 == 0 ? "white" : "#eee") + '">' : "") + '\n                  <td>' + _this2.renderEvidence(e.evidence) + '</td>\n                ' + (i > 0 ? "</tr>" : "") + '\n              ';
         }).join('') + '\n          </tr>\n        ';
       }).join('') + '\n      </table>\n    </div>\n    ';
@@ -3276,10 +3276,10 @@ var GenPropRenderer = function () {
       var _this3 = this;
 
       return '\n    <div>\n      <h4>Steps</h4>\n      <table class="no-stripe" style=" background-color:#86a5bb;">\n        <tr style="background-color: #ddd">\n          <th width="30%">Step</td>\n          <th style="text-align: left;">Evidence</th>\n          <th style="text-align: left;">Go Terms</th>\n        </tr>\n\n        ' + property.steps.map(function (step, j) {
-        return '\n          <tr style="background-color: ' + (j % 2 == 0 ? "white" : "#eee") + '">\n            <td rowspan="' + step.evidence_list.length + '">' + step.number + '. ' + step.id + '\n              ' + (step.requires === "1" ? '<br/><span class="tag">Required</span>' : '') + '\n            </td>\n              ' + step.evidence_list.map(function (e, i) {
+        return '\n          <tr style="background-color: ' + (j % 2 == 0 ? "white" : "#eee") + '">\n            <td rowspan="' + step.evidence_list.length + '">' + step.number + '. ' + step.id + '\n              ' + (step.requires !== "1" ? '<br/><span class="tag secondary">Optional</span>' : '') + '\n            </td>\n              ' + step.evidence_list.map(function (e, i) {
           return '\n                ' + (i > 0 ? '<tr style="background-color: ' + (j % 2 == 0 ? "white" : "#eee") + '">' : "") + '\n                  <td>' + _this3.renderEvidence(e.evidence) + '</td>\n                  <td>' + _this3.renderEvidence(e.go) + '</td>\n                ' + (i > 0 ? "</tr>" : "") + '\n              ';
         }).join('') + '\n          </tr>\n        ';
-      }).join('') + '\n      </table>\n      <span\n        data-tooltip\n        aria-haspopup="true"\n        data-disable-hover="false"\n        class="has-tip tag secondary"\n        title="Required to pass a step"\n      >\n          Threshold: ' + property.threshold + '\n      </span>\n    </div>\n    ';
+      }).join('') + '\n      </table>\n      <span\n        data-tooltip\n        aria-haspopup="true"\n        data-disable-hover="false"\n        class="has-tip tag secondary"\n        title="The threshold value is the number of required (non-optional) steps found, above which a value of PARTIAL is set for the property. Partial can be thought of as some evidence of the property. A full YES state is only defined where ALL required steps are found."\n      >\n          Threshold: ' + property.threshold + '\n      </span>\n    </div>\n    ';
     }
   }, {
     key: 'renderDatabaseLink',
@@ -3586,7 +3586,7 @@ var GenomePropertiesWebsite = function () {
       return "\n    <div id=\"content-browse-tab\">\n      <ul>\n        " + txt.split('\n').map(function (line) {
         if (line.trim() === "") return "";
         var gp = line.split('\t');
-        return "\n            <li>\n              <a href=\"#" + gp[0] + "\">" + gp[0] + "</a>: " + gp[1] + "\n            </li>";
+        return "\n            <li>\n              <a href=\"#" + gp[0] + "\">" + gp[0] + "</a>:\n              <a href=\"#" + gp[0] + "\">" + gp[1] + "</a>\n            </li>";
       }).join('') + "\n      </ul>\n    </div>";
     }
   }, {

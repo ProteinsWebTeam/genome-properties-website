@@ -35,7 +35,7 @@ export const renderGenPropHierarchy = (hierarchy, expanded=true, level=1) => {
       `}
       <span class="genprop-label" text="${hierarchy.id} ${hierarchy.name}">
         <a href="#${hierarchy.id}">${hierarchy.id}</a>:
-        ${hierarchy.name}
+        <a href="#${hierarchy.id}">${hierarchy.name}</a>
       </span>
     </header>
     ${!hierarchy.children.length?'':`

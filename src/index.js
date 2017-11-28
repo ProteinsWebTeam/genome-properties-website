@@ -227,7 +227,8 @@ class GenomePropertiesWebsite {
           const gp =line.split('\t');
           return `
             <li>
-              <a href="#${gp[0]}">${gp[0]}</a>: ${gp[1]}
+              <a href="#${gp[0]}">${gp[0]}</a>:
+              <a href="#${gp[0]}">${gp[1]}</a>
             </li>`
         }).join('')}
       </ul>
