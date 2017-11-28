@@ -49,7 +49,7 @@ class ViewerRenderer {
                         </li>
                         <li>
                           <button id="toggle-tax" class="button secondary">
-                            Show Taxonomy
+                            Hide Taxonomy
                           </button>
                         </li>
                     </ul>
@@ -77,7 +77,7 @@ class ViewerRenderer {
                 height: 400
             });
       window.viewer = viewer;
-      let showTaxonomy = false;
+      let showTaxonomy = true;
 
       viewer.gp_taxonomy.show_tree = showTaxonomy;
 
