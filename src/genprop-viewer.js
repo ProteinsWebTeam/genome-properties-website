@@ -13,6 +13,10 @@ class ViewerRenderer {
                         <li><label for="tax-search">From Taxonomy:</label>
                             <input type="text" id="tax-search">
                         </li>
+                        <li><button id="toggle-tax" class="button secondary">
+                          Show Taxonomy
+                        </button>
+                        </li>
                         <li>
                             <label for="newfile">From a File: </label>
                             <input type="file" id="newfile"/>
@@ -72,6 +76,10 @@ class ViewerRenderer {
                 height: 400
             });
       window.viewer = viewer;
+      let showTaxonomy = false;
+
+      viewer.gp_taxonomy.show_tree = showTaxonomy;
+
       d3.select(".minimise").on("click",(d,i,c)=>{
           const on = d3.select(c[i]).classed("on");
           d3.selectAll(".top-controllers>div")
@@ -82,6 +90,12 @@ class ViewerRenderer {
                   .style("opacity", on?1:0);
           d3.selectAll(".top-controllers").transition(200).style("padding", on?"5px":"0px");
           d3.select(c[i]).classed("on", !on);
+      });
+      d3.select("#toggle-tax").on("click",(d,i,c)=>{
+          d3.select(c[i]).text(showTaxonomy ? "Show Taxonomy" : "Hide Taxonomy");
+          showTaxonomy = !showTaxonomy;
+          viewer.gp_taxonomy.show_tree = showTaxonomy;
+          viewer.update_viewer();
       });
   }
 }
