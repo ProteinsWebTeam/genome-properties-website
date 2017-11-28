@@ -13,10 +13,6 @@ class ViewerRenderer {
                         <li><label for="tax-search">From Taxonomy:</label>
                             <input type="text" id="tax-search">
                         </li>
-                        <li><button id="toggle-tax" class="button secondary">
-                          Show Taxonomy
-                        </button>
-                        </li>
                         <li>
                             <label for="newfile">From a File: </label>
                             <input type="file" id="newfile"/>
@@ -50,6 +46,11 @@ class ViewerRenderer {
                                 <option value="id">ID</option>
                                 <option value="both">Both</option>
                             </select>
+                        </li>
+                        <li>
+                          <button id="toggle-tax" class="button secondary">
+                            Show Taxonomy
+                          </button>
                         </li>
                     </ul>
                 </div>
