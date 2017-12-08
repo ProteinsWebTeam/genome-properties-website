@@ -67,7 +67,6 @@ class GenPropRenderer {
           <tr style="background-color: ${j%2==0?"white":"#eee"}">
             <td rowspan="${step.evidence_list.length}">
               ${step.number}. ${this.getFirstEvidenceLink(step.evidence_list, step.id)}
-              ${step.requires!=="1"?'<br/><span class="tag secondary">Optional</span>':''}
             </td>
               ${step.evidence_list.map((e,i) => `
                 ${i>0?`<tr style="background-color: ${j%2==0?"white":"#eee"}">`:""}

@@ -13,7 +13,7 @@ export const searchHierarchy = term => {
   document.querySelectorAll('span.genprop-label')
     .forEach(e => e.classList.remove("search-match"));
   if (term.trim()!=='')
-    document.querySelectorAll(`span.genprop-label[text*=${term}]`)
+    document.querySelectorAll(`span.genprop-label[text*="${term}"]`)
       .forEach(e => {
         e.classList.add("search-match");
         expandParents(e.parentNode.parentNode);

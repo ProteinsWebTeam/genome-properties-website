@@ -3023,7 +3023,7 @@ if ('object' !== 'undefined' && module.exports) {
 }
 }).call(commonjsGlobal);
 
-
+//# sourceMappingURL=showdown.js.map
 });
 
 var _createClass$1 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -3202,7 +3202,7 @@ var searchHierarchy = function searchHierarchy(term) {
   document.querySelectorAll('span.genprop-label').forEach(function (e) {
     return e.classList.remove("search-match");
   });
-  if (term.trim() !== '') document.querySelectorAll('span.genprop-label[text*=' + term + ']').forEach(function (e) {
+  if (term.trim() !== '') document.querySelectorAll('span.genprop-label[text*="' + term + '"]').forEach(function (e) {
     e.classList.add("search-match");
     expandParents(e.parentNode.parentNode);
   });
@@ -3265,7 +3265,7 @@ var GenPropRenderer = function () {
       var _this2 = this;
 
       return '\n    <div>\n      <h4>Genome properties</h4>\n      <table class="no-stripe" style=" background-color:#86a5bb;">\n        <tr style="background-color: #ddd">\n          <th width="30%">Property</td>\n          <th style="text-align: left;">Accession</th>\n        </tr>\n\n        ' + property.steps.map(function (step, j) {
-        return '\n          <tr style="background-color: ' + (j % 2 == 0 ? "white" : "#eee") + '">\n            <td rowspan="' + step.evidence_list.length + '">\n              ' + step.number + '. ' + _this2.getFirstEvidenceLink(step.evidence_list, step.id) + '\n              ' + (step.requires !== "1" ? '<br/><span class="tag secondary">Optional</span>' : '') + '\n            </td>\n              ' + step.evidence_list.map(function (e, i) {
+        return '\n          <tr style="background-color: ' + (j % 2 == 0 ? "white" : "#eee") + '">\n            <td rowspan="' + step.evidence_list.length + '">\n              ' + step.number + '. ' + _this2.getFirstEvidenceLink(step.evidence_list, step.id) + '\n            </td>\n              ' + step.evidence_list.map(function (e, i) {
           return '\n                ' + (i > 0 ? '<tr style="background-color: ' + (j % 2 == 0 ? "white" : "#eee") + '">' : "") + '\n                  <td>' + _this2.renderEvidence(e.evidence) + '</td>\n                ' + (i > 0 ? "</tr>" : "") + '\n              ';
         }).join('') + '\n          </tr>\n        ';
       }).join('') + '\n      </table>\n    </div>\n    ';
