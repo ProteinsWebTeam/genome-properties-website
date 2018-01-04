@@ -3023,7 +3023,7 @@ if ('object' !== 'undefined' && module.exports) {
 }
 }).call(commonjsGlobal);
 
-
+//# sourceMappingURL=showdown.js.map
 });
 
 var _createClass$1 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -3379,6 +3379,14 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var gp_server = 'http://localhost/cgi-bin/test.pl';
+
+function isIpproLine(line) {
+  var parts = line.split('\t');
+  var uniprot = /[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}/;
+  return !(parts.length < 11 || !uniprot.test(parts[0]) || parts[1].length !== 32);
+}
+
 var GenomePropertiesWebsite = function () {
   function GenomePropertiesWebsite(selector) {
     var _this = this;
@@ -3429,7 +3437,6 @@ var GenomePropertiesWebsite = function () {
       }
     };
     window.onchange = function (ev) {
-      console.log(ev.target.id);
       if (ev.target.id === 'newfile') {
 
         var oFiles = document.getElementById("newfile").files;
@@ -3438,7 +3445,24 @@ var GenomePropertiesWebsite = function () {
           reader.fileToRead = oFiles[i];
           reader.onload = function (evt) {
             try {
-              viewer.load_genome_properties_text(evt.target.fileToRead.name, evt.target.result);
+              var firstline = evt.target.result.split('\n')[0];
+              if (isIpproLine(firstline)) {
+                fetch(gp_server, {
+                  method: 'POST',
+                  body: 'ipprotsv=' + evt.target.result,
+                  headers: new Headers({
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Access-Control-Request-Method": "POST",
+                    "Access-Control-Request-Headers": "X-PINGOTHER, Content-Type"
+                  })
+                }).then(function (response) {
+                  return response.text();
+                }).then(function (x) {
+                  viewer.load_genome_properties_text(evt.target.fileToRead.name, x);
+                });
+              } else {
+                viewer.load_genome_properties_text(evt.target.fileToRead.name, evt.target.result);
+              }
             } catch (e) {
               alert('Bad formatted file');
               console.error(e);

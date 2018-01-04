@@ -9,6 +9,14 @@ import {
 import GenPropRenderer from "./genprop-property";
 import ViewerRenderer from "./genprop-viewer";
 
+const gp_server = 'http://localhost/cgi-bin/test.pl';
+
+function isIpproLine(line){
+    const parts = line.split('\t');
+    const uniprot = /[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}/;
+    return !(parts.length < 11 || !uniprot.test(parts[0]) || parts[1].length !== 32);
+}
+
 class GenomePropertiesWebsite {
   constructor(selector) {
     this.selector = selector;
@@ -57,7 +65,6 @@ class GenomePropertiesWebsite {
       }
     }
     window.onchange = function(ev){
-      console.log(ev.target.id);
       if (ev.target.id==='newfile'){
 
         const oFiles = document.getElementById("newfile").files;
@@ -66,7 +73,25 @@ class GenomePropertiesWebsite {
             reader.fileToRead = oFiles[i];
             reader.onload = function(evt) {
               try {
-                viewer.load_genome_properties_text(evt.target.fileToRead.name, evt.target.result);
+                  const firstline = evt.target.result.split('\n')[0];
+                  if (isIpproLine(firstline)){
+                      fetch(gp_server, {
+                          method: 'POST',
+                          body: 'ipprotsv='+evt.target.result,
+                          headers: new Headers({
+                              "Content-Type": "application/x-www-form-urlencoded",
+                              "Access-Control-Request-Method": "POST",
+                              "Access-Control-Request-Headers": "X-PINGOTHER, Content-Type",
+                          })
+                      }).then(response => response.text()).then(
+                          x=> {
+                              viewer.load_genome_properties_text(evt.target.fileToRead.name, x)
+                          }
+                      )
+                  } else {
+                      viewer.load_genome_properties_text(evt.target.fileToRead.name, evt.target.result);
+
+                  }
               }catch(e){
                   alert('Bad formatted file');
                   console.error(e);
