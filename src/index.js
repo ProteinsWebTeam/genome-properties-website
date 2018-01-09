@@ -260,7 +260,7 @@ class GenomePropertiesWebsite {
     </div>`;
   }
   getProps(){
-    return this.getResource('props', `${this.github}/docs/release/hierarchy.json`, txt => {
+    return this.getResource('props', `${this.github}/flatfiles/hierarchy.json`, txt => {
       return renderGenPropHierarchyPage(txt)
     })
   }

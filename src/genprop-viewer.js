@@ -70,10 +70,9 @@ class ViewerRenderer {
             viewer = new GenomePropertiesViewer({
                 element_selector: "#gp-viewer",
                 controller_element_selector: "#gp-selector",
-                server: `${this.github}/docs/release/GP_calculation/SUMMARY_FILE_`,
-                hierarchy_path: `${this.github}/docs/release/hierarchy.json`,
-                whitelist_path: "https://raw.githubusercontent.com/ProteinsWebTeam/genome-properties-viewer/master/test-files/gp_white_list.json",
-                server_tax: `${this.github}/docs/release/taxonomy.json`,
+                server: `${this.github}/flatfiles/gp_assignments/SUMMARY_FILE_{}.gp`,
+                hierarchy_path: `${this.github}/flatfiles/hierarchy.json`,
+                server_tax: `${this.github}/flatfiles/taxonomy.json`,
                 height: 400
             });
       window.viewer = viewer;

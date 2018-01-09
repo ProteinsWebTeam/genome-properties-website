@@ -3023,7 +3023,7 @@ if ('object' !== 'undefined' && module.exports) {
 }
 }).call(commonjsGlobal);
 
-//# sourceMappingURL=showdown.js.map
+
 });
 
 var _createClass$1 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -3346,10 +3346,9 @@ var ViewerRenderer = function () {
                 viewer = new GenomePropertiesViewer({
                 element_selector: "#gp-viewer",
                 controller_element_selector: "#gp-selector",
-                server: this.github + "/docs/release/GP_calculation/SUMMARY_FILE_",
-                hierarchy_path: this.github + "/docs/release/hierarchy.json",
-                whitelist_path: "https://raw.githubusercontent.com/ProteinsWebTeam/genome-properties-viewer/master/test-files/gp_white_list.json",
-                server_tax: this.github + "/docs/release/taxonomy.json",
+                server: this.github + "/flatfiles/gp_assignments/SUMMARY_FILE_{}.gp",
+                hierarchy_path: this.github + "/flatfiles/hierarchy.json",
+                server_tax: this.github + "/flatfiles/taxonomy.json",
                 height: 400
             });
             window.viewer = viewer;
@@ -3626,7 +3625,7 @@ var GenomePropertiesWebsite = function () {
   }, {
     key: "getProps",
     value: function getProps() {
-      return this.getResource('props', this.github + "/docs/release/hierarchy.json", function (txt) {
+      return this.getResource('props', this.github + "/flatfiles/hierarchy.json", function (txt) {
         return renderGenPropHierarchyPage(txt);
       });
     }
