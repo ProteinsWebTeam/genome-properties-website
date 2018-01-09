@@ -92,7 +92,7 @@ class GenPropRenderer {
 
         ${property.steps.map((step,j) => `
           <tr style="background-color: ${j%2==0?"white":"#eee"}">
-            <td rowspan="${step.evidence_list.length}">${step.number}. ${step.id}
+            <td rowspan="${step.evidence_list.length || 1}">${step.number}. ${step.id}
               ${step.requires!=="1"?'<br/><span class="tag secondary">Optional</span>':''}
             </td>
               ${step.evidence_list.map((e,i) => `
@@ -101,7 +101,7 @@ class GenPropRenderer {
                   <td>${this.renderEvidence(e.go)}</td>
                 ${i>0?"</tr>":""}
               `).join('')}
-              ${!step.evidence_list.length && "<td><cite>None</cite></td><td><cite>None</cite></td>"}
+              ${step.evidence_list.length ? "" : "<td><cite>None</cite></td><td><cite>None</cite></td>"}
           </tr>
         `).join('')}
       </table>

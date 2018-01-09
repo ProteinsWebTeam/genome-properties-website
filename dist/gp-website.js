@@ -3023,7 +3023,7 @@ if ('object' !== 'undefined' && module.exports) {
 }
 }).call(commonjsGlobal);
 
-
+//# sourceMappingURL=showdown.js.map
 });
 
 var _createClass$1 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -3276,9 +3276,9 @@ var GenPropRenderer = function () {
       var _this3 = this;
 
       return '\n    <div>\n      <h4>Steps</h4>\n      <table class="no-stripe" style=" background-color:#86a5bb;">\n        <tr style="background-color: #ddd">\n          <th width="30%">Step</td>\n          <th style="text-align: left;">Evidence</th>\n          <th style="text-align: left;">Go Terms</th>\n        </tr>\n\n        ' + property.steps.map(function (step, j) {
-        return '\n          <tr style="background-color: ' + (j % 2 == 0 ? "white" : "#eee") + '">\n            <td rowspan="' + step.evidence_list.length + '">' + step.number + '. ' + step.id + '\n              ' + (step.requires !== "1" ? '<br/><span class="tag secondary">Optional</span>' : '') + '\n            </td>\n              ' + step.evidence_list.map(function (e, i) {
+        return '\n          <tr style="background-color: ' + (j % 2 == 0 ? "white" : "#eee") + '">\n            <td rowspan="' + (step.evidence_list.length || 1) + '">' + step.number + '. ' + step.id + '\n              ' + (step.requires !== "1" ? '<br/><span class="tag secondary">Optional</span>' : '') + '\n            </td>\n              ' + step.evidence_list.map(function (e, i) {
           return '\n                ' + (i > 0 ? '<tr style="background-color: ' + (j % 2 == 0 ? "white" : "#eee") + '">' : "") + '\n                  <td>' + _this3.renderEvidence(e.evidence) + '</td>\n                  <td>' + _this3.renderEvidence(e.go) + '</td>\n                ' + (i > 0 ? "</tr>" : "") + '\n              ';
-        }).join('') + '\n              ' + (!step.evidence_list.length && "<td><cite>None</cite></td><td><cite>None</cite></td>") + '\n          </tr>\n        ';
+        }).join('') + '\n              ' + (step.evidence_list.length ? "" : "<td><cite>None</cite></td><td><cite>None</cite></td>") + '\n          </tr>\n        ';
       }).join('') + '\n      </table>\n      <span\n        data-tooltip\n        aria-haspopup="true"\n        data-disable-hover="false"\n        class="has-tip tag secondary"\n        title="The threshold value is the number of required (non-optional) steps found, above which a value of PARTIAL is set for the property. Partial can be thought of as some evidence of the property. A full YES state is only defined where ALL required steps are found."\n      >\n          Threshold: ' + property.threshold + '\n      </span>\n    </div>\n    ';
     }
   }, {
