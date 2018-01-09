@@ -101,6 +101,7 @@ class GenPropRenderer {
                   <td>${this.renderEvidence(e.go)}</td>
                 ${i>0?"</tr>":""}
               `).join('')}
+              ${!step.evidence_list.length && "<td><cite>None</cite></td><td><cite>None</cite></td>"}
           </tr>
         `).join('')}
       </table>
