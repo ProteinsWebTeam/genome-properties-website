@@ -1,0 +1,13 @@
+{
+  "content_url": "https://raw.githubusercontent.com/ebi-pf-team/genome-properties/master",
+  "viewer": {
+    "margin": {
+      "top": 180,
+      "right": 50,
+      "bottom": 10,
+      "left": 40
+    },
+    "height": 400,
+    "cell_side": 20
+  }
+}

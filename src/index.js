@@ -18,14 +18,14 @@ function isIpproLine(line){
 }
 
 class GenomePropertiesWebsite {
-  constructor(selector) {
+  constructor(selector, options) {
     this.selector = selector;
     this.container = document.querySelector(selector);
-    this.github = "https://raw.githubusercontent.com/ebi-pf-team/genome-properties/master";
+    this.github = options.content_url || "https://raw.githubusercontent.com/ebi-pf-team/genome-properties/master";
     window.onhashchange = () => this.loadContent();
     this.cache = {};
     this.propertyRenderer = new GenPropRenderer();
-    this.viewerRenderer = new ViewerRenderer(this.github);
+    this.viewerRenderer = new ViewerRenderer(this.github, options.viewer);
     this.loadContent();
 
     window.onclick = function(ev){

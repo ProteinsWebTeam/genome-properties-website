@@ -3328,9 +3328,12 @@ function _classCallCheck$3(instance, Constructor) { if (!(instance instanceof Co
 
 var ViewerRenderer = function () {
     function ViewerRenderer(github) {
+        var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
         _classCallCheck$3(this, ViewerRenderer);
 
         this.github = github;
+        this.options = options;
     }
 
     _createClass$3(ViewerRenderer, [{
@@ -3349,7 +3352,9 @@ var ViewerRenderer = function () {
                 server: this.github + "/flatfiles/gp_assignments/SUMMARY_FILE_{}.gp",
                 hierarchy_path: this.github + "/flatfiles/hierarchy.json",
                 server_tax: this.github + "/flatfiles/taxonomy.json",
-                height: 400
+                height: this.options.height || 400,
+                cell_side: this.options.cell_side || 20,
+                margin: this.options.margin || { "top": 180, "right": 50, "bottom": 10, "left": 40 }
             });
             window.viewer = viewer;
             var showTaxonomy = true;
@@ -3387,20 +3392,20 @@ function isIpproLine(line) {
 }
 
 var GenomePropertiesWebsite = function () {
-  function GenomePropertiesWebsite(selector) {
+  function GenomePropertiesWebsite(selector, options) {
     var _this = this;
 
     _classCallCheck(this, GenomePropertiesWebsite);
 
     this.selector = selector;
     this.container = document.querySelector(selector);
-    this.github = "https://raw.githubusercontent.com/rdfinn/genome-properties/master";
+    this.github = options.content_url || "https://raw.githubusercontent.com/ebi-pf-team/genome-properties/master";
     window.onhashchange = function () {
       return _this.loadContent();
     };
     this.cache = {};
     this.propertyRenderer = new GenPropRenderer();
-    this.viewerRenderer = new ViewerRenderer(this.github);
+    this.viewerRenderer = new ViewerRenderer(this.github, options.viewer);
     this.loadContent();
 
     window.onclick = function (ev) {

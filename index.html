@@ -182,7 +182,12 @@
   <script src="dist/gp-website.js"></script>
   <script src="dist/d3.custom.min.js"></script>
   <script type="text/JavaScript">
-    var gpw = new GenomePropertiesWebsite("#main-content-area");
+    gpv.d3.json("config.json", function(conf){
+      var gpw = new GenomePropertiesWebsite("#main-content-area", conf);
+    }).on('error', function(){
+      console.error('The config file could not be loaded. Running with by-default options.');
+      var gpw = new GenomePropertiesWebsite("#main-content-area");
+    });
   </script>
 
 </body>
