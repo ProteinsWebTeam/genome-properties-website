@@ -21,7 +21,7 @@ class GenomePropertiesWebsite {
   constructor(selector) {
     this.selector = selector;
     this.container = document.querySelector(selector);
-    this.github = "https://raw.githubusercontent.com/rdfinn/genome-properties/master";
+    this.github = "https://raw.githubusercontent.com/ebi-pf-team/genome-properties/master";
     window.onhashchange = () => this.loadContent();
     this.cache = {};
     this.propertyRenderer = new GenPropRenderer();
