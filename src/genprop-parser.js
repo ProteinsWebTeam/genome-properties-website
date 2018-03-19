@@ -50,11 +50,17 @@ const parseGenProp = (txt) => {
     }
     // Databases
     if (key === 'DC') {
-      currentDB = {title: value}
-      property.databases.push(currentDB);
+      if (currentDB){
+        currentDB.title += ' '+value;
+      } else {
+        currentDB = {title: value}
+        property.databases.push(currentDB);
+      }
     }
-    if (key === 'DR' && currentDB) currentDB['link'] = value;
-
+    if (key === 'DR' && currentDB) {
+      currentDB['link'] = value;
+      currentDB =null;
+    }
     // Description
     if (key === 'CC') property.description += value + ' ';
 
