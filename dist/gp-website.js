@@ -4955,6 +4955,9 @@ var ViewerRenderer = function () {
                 viewer.gp_taxonomy.show_tree = showTaxonomy;
                 viewer.update_viewer();
             });
+            d3.select(".row_title").on("click", function (d) {
+                console.log("click label:", d);
+            });
         }
     }]);
 
@@ -4969,8 +4972,7 @@ var gp_server = 'http://localhost/cgi-bin/test.pl';
 
 function isIpproLine(line) {
   var parts = line.split('\t');
-  var uniprot = /[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}/;
-  return !(parts.length < 11 || !uniprot.test(parts[0]) || parts[1].length !== 32);
+  return !(parts.length < 11 || parts[1].length !== 32);
 }
 
 var GenomePropertiesWebsite = function () {

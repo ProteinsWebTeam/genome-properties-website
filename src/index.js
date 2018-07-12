@@ -13,8 +13,7 @@ const gp_server = 'http://localhost/cgi-bin/test.pl';
 
 function isIpproLine(line){
     const parts = line.split('\t');
-    const uniprot = /[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}/;
-    return !(parts.length < 11 || !uniprot.test(parts[0]) || parts[1].length !== 32);
+    return !(parts.length < 11 || parts[1].length !== 32);
 }
 
 class GenomePropertiesWebsite {
