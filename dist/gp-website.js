@@ -4955,9 +4955,6 @@ var ViewerRenderer = function () {
                 viewer.gp_taxonomy.show_tree = showTaxonomy;
                 viewer.update_viewer();
             });
-            d3.select(".row_title").on("click", function (d) {
-                console.log("click label:", d);
-            });
         }
     }]);
 
@@ -4967,8 +4964,6 @@ var ViewerRenderer = function () {
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var gp_server = 'http://localhost/cgi-bin/test.pl';
 
 function isIpproLine(line) {
   var parts = line.split('\t');
@@ -4984,6 +4979,7 @@ var GenomePropertiesWebsite = function () {
     this.selector = selector;
     this.container = document.querySelector(selector);
     this.github = options.content_url || "https://raw.githubusercontent.com/ebi-pf-team/genome-properties/master";
+    var gp_server = options.cgi_url || 'http://localhost/cgi-bin/test.pl';
     window.onhashchange = function () {
       return _this.loadContent();
     };

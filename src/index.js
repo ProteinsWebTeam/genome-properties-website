@@ -9,7 +9,6 @@ import {
 import GenPropRenderer from "./genprop-property";
 import ViewerRenderer from "./genprop-viewer";
 
-const gp_server = 'http://localhost/cgi-bin/test.pl';
 
 function isIpproLine(line){
     const parts = line.split('\t');
@@ -21,6 +20,7 @@ class GenomePropertiesWebsite {
     this.selector = selector;
     this.container = document.querySelector(selector);
     this.github = options.content_url || "https://raw.githubusercontent.com/ebi-pf-team/genome-properties/master";
+    const gp_server = options.cgi_url || 'http://localhost/cgi-bin/test.pl';
     window.onhashchange = () => this.loadContent();
     this.cache = {};
     this.propertyRenderer = new GenPropRenderer();
