@@ -4996,6 +4996,7 @@ var GenomePropertiesWebsite = (function () {
           case "#funding":
           case "#contributing":
           case "#contact":
+          case "#release_notes":
             content = this.getAboutTabs();
             break;
           case '#browse':
@@ -5086,9 +5087,10 @@ var GenomePropertiesWebsite = (function () {
           "#documentation": '/docs/documentation.rst',
           "#funding": '/docs/funding.rst',
           "#contributing": '/docs/contributing.rst',
-          "#contact": '/docs/contact.rst'
+          "#contact": '/docs/contact.rst',
+          "#release_notes": '/docs/release_notes.rst'
         };
-        var tabs = ['About', 'Calculating', 'Funding', 'Contributing', 'Documentation', 'Contact'];
+        var tabs = ['About', 'Calculating', 'Funding', 'Contributing', 'Help & Documentation', 'Contact', 'Release notes'];
         return this.getContentTabs(resource, tabs, this.markup2html.bind(this));
       }
     }, {
@@ -5110,7 +5112,7 @@ var GenomePropertiesWebsite = (function () {
       key: "getContentTabs",
       value: function getContentTabs(resource, tabs, renderer) {
         return "\n      <ul class=\"tabs\" data-tabs id=\"browse-tabs\">\n      " + tabs.map(function (tab) {
-          var hash = '#' + tab.toLowerCase();
+          var hash = tab.indexOf('&') === -1 ? '#' + tab.toLowerCase().replace(" ", "_") : '#documentation';
           var isActive = hash === location.hash;
           return "\n          <li class=\"tabs-title " + (isActive ? 'is-active' : '') + "\" >\n            <a " + (isActive ? 'aria-selected="true"' : '') + " href=\"" + hash + "\">" + tab + "</a>\n          </li>";
         }).join('') + "\n      </ul>\n      <br/>\n      " + (location.hash === '#hierarchy' || location.hash === '#browse' ? this.getProps() : this.getResource(location.hash, "" + this.github + resource[location.hash], renderer)) + "\n    ";

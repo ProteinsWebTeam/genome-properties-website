@@ -117,6 +117,7 @@ class GenomePropertiesWebsite {
       case "#funding":
       case "#contributing":
       case "#contact":
+      case "#release_notes":
         content = this.getAboutTabs();
         break;
       case '#browse':
@@ -197,9 +198,10 @@ class GenomePropertiesWebsite {
       "#funding": '/docs/funding.rst',
       "#contributing": '/docs/contributing.rst',
       "#contact": '/docs/contact.rst',
+      "#release_notes": '/docs/release_notes.rst',
     };
     const tabs = [
-      'About', 'Calculating', 'Funding', 'Contributing', 'Documentation', 'Contact'
+      'About', 'Calculating', 'Funding', 'Contributing', 'Help & Documentation', 'Contact', 'Release notes'
     ];
     return this.getContentTabs(resource,tabs,this.markup2html.bind(this));
   }
@@ -223,7 +225,9 @@ class GenomePropertiesWebsite {
     return `
       <ul class="tabs" data-tabs id="browse-tabs">
       ${tabs.map(tab => {
-        const hash = '#'+tab.toLowerCase();
+        const hash = tab.indexOf('&') === -1
+          ? '#'+tab.toLowerCase().replace(" ","_")
+          : '#documentation';
         const isActive = hash === location.hash;
         return `
           <li class="tabs-title ${isActive?'is-active':''}" >
