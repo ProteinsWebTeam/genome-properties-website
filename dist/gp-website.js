@@ -60,7 +60,11 @@ var parseGenProp = function parseGenProp(txt) {
         property.databases.push(currentDB);
       }
     }
-    if (key === 'DR' && currentDB) {
+    if (key === 'DR') {
+      if (!currentDB) {
+        currentDB = { title: 'Link' };
+        property.databases.push(currentDB);
+      }
       currentDB['link'] = value;
       currentDB = null;
     }
@@ -4870,7 +4874,7 @@ var GenPropRenderer = function () {
       var parts = link.split(';').map(function (p) {
         return p.trim();
       });
-      if (parts[0] === 'KEGG') a = '<a\n        href="http://www.genome.jp/dbget-bin/www_bget?pathway:' + parts[1] + '"\n      >KEGG</a>';else if (parts[0] === 'IUBMB') a = '<a\n        href="http://www.chem.qmul.ac.uk/iubmb/enzyme/reaction/' + parts[1] + '/' + parts[2] + '.html"\n      >IUBMB</a>';else if (parts[0] === 'MetaCyc') a = '<a\n        href="https://metacyc.org/META/NEW-IMAGE?type=NIL&object=' + parts[1] + '"\n      >MetaCyc</a>';
+      if (parts[0] === 'KEGG') a = '<a\n        href="http://www.genome.jp/dbget-bin/www_bget?pathway:' + parts[1] + '"\n      >KEGG</a>';else if (parts[0] === 'IUBMB') a = '<a\n        href="http://www.chem.qmul.ac.uk/iubmb/enzyme/reaction/' + parts[1] + '/' + parts[2] + '.html"\n      >IUBMB</a>';else if (parts[0] === 'MetaCyc') a = '<a\n        href="https://metacyc.org/META/NEW-IMAGE?type=NIL&object=' + parts[1] + '"\n      >MetaCyc</a>';else if (parts[0] === 'Complex Portal') a = '<a\n        href="https://www.ebi.ac.uk/complexportal/complex/' + parts[1] + '"\n      >Complex Portal</a>';else if (parts[0] === 'PDBe') a = '<a\n        href="https://www.ebi.ac.uk/pdbe/entry/pdb/' + parts[1] + '"\n      >PDBe</a>';
       return '<b>' + title + '</b>: ' + a;
     }
   }, {

@@ -57,7 +57,11 @@ const parseGenProp = (txt) => {
         property.databases.push(currentDB);
       }
     }
-    if (key === 'DR' && currentDB) {
+    if (key === 'DR') {
+      if (!currentDB) {
+        currentDB = {title: 'Link'}
+        property.databases.push(currentDB);
+      }
       currentDB['link'] = value;
       currentDB =null;
     }

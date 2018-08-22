@@ -132,6 +132,14 @@ class GenPropRenderer {
       a = `<a
         href="https://metacyc.org/META/NEW-IMAGE?type=NIL&object=${parts[1]}"
       >MetaCyc</a>`
+    else if (parts[0] === 'Complex Portal')
+      a = `<a
+        href="https://www.ebi.ac.uk/complexportal/complex/${parts[1]}"
+      >Complex Portal</a>`
+    else if (parts[0] === 'PDBe')
+      a = `<a
+        href="https://www.ebi.ac.uk/pdbe/entry/pdb/${parts[1]}"
+      >PDBe</a>`
     return `<b>${title}</b>: ${a}`;
   }
   getFirstEvidenceLink(evidence_list, text){
