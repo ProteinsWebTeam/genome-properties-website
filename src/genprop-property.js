@@ -21,6 +21,7 @@ class GenPropRenderer {
       <div>
         ${isCategory ? this.renderChildren(property) : this.renderSteps(property)}
       </div>
+      <br/>
       <div>
         <h4>Database Links</h4>
         ${property.databases && property.databases.length ? `

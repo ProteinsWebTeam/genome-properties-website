@@ -139,7 +139,7 @@ class GenomePropertiesWebsite {
           content = this.getGenProp(propMatch[0].substr(1));
         }else if (pageRequiredToChange){
             content = "404: Not found";
-        }// console.log("other", location.hash);
+        }
     }
     if (key && key.startsWith("INCLUDE_") && key in this.cache){
       content = content.replace(key, this.markup2html(this.cache[key]));
