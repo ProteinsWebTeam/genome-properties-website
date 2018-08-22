@@ -126,6 +126,7 @@ class GenomePropertiesWebsite {
       case '#systems':
       case '#guilds':
       case '#categories':
+      case '#complexes':
         content = this.getBrowseTabs();
         break;
       case "#viewer":
@@ -209,11 +210,12 @@ class GenomePropertiesWebsite {
       "#systems": '/docs/_stats/stats.SYSTEM',
       "#guilds": '/docs/_stats/stats.GUILD',
       "#categories": '/docs/_stats/stats.CATEGORY',
+      "#complexes": '/docs/_stats/stats.COMPLEX',
     };
 
     const tabs = [
       'Hierarchy', 'Pathways', 'Metapaths',
-      'Systems', 'Guilds', 'Categories'
+      'Systems', 'Guilds', 'Complexes', 'Categories'
     ];
     return this.getContentTabs(resource,tabs,this.renderStatsFile);
   }

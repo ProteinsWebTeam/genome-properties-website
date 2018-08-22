@@ -4609,7 +4609,7 @@ if (typeof undefined === 'function' && undefined.amd) {
 }
 }).call(commonjsGlobal);
 
-
+//# sourceMappingURL=showdown.js.map
 });
 
 var _createClass$1 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -5094,6 +5094,7 @@ var GenomePropertiesWebsite = function () {
         case '#systems':
         case '#guilds':
         case '#categories':
+        case '#complexes':
           content = this.getBrowseTabs();
           break;
         case "#viewer":
@@ -5187,10 +5188,11 @@ var GenomePropertiesWebsite = function () {
         "#metapaths": '/docs/_stats/stats.METAPATH',
         "#systems": '/docs/_stats/stats.SYSTEM',
         "#guilds": '/docs/_stats/stats.GUILD',
-        "#categories": '/docs/_stats/stats.CATEGORY'
+        "#categories": '/docs/_stats/stats.CATEGORY',
+        "#complexes": '/docs/_stats/stats.COMPLEX'
       };
 
-      var tabs = ['Hierarchy', 'Pathways', 'Metapaths', 'Systems', 'Guilds', 'Categories'];
+      var tabs = ['Hierarchy', 'Pathways', 'Metapaths', 'Systems', 'Guilds', 'Complexes', 'Categories'];
       return this.getContentTabs(resource, tabs, this.renderStatsFile);
     }
   }, {
