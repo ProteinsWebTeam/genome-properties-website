@@ -121,7 +121,7 @@ export class RstRenderer {
       const partOfTable = l.indexOf('|')===0;
       if (!onTable && isRow){
         onTable=true;
-        return '<div style="text-align: center;margin: 10px auto;"><table>';
+        return '<div style="margin: 10px auto;"><table class="from-md">';
       }
       if (onTable && isRow) return '';
       if (onTable && !isRow && partOfTable){

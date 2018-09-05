@@ -65,3 +65,8 @@ ul.references li .title {font-weight: bold;}
 .search-match {
   background-color: yellow;
 }
+
+table.from-md {
+  width: auto;
+  text-align: left;
+}
