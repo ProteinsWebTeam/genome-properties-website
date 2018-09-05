@@ -117,7 +117,7 @@ export class RstRenderer {
   toMDTables(txt) {
     let onTable = false;
     return txt.split('\n').map(l=>{
-      const isRow = l.indexOf('+--')===0;
+      const isRow = l.indexOf('+--')===0 || l.indexOf('+==')===0;
       const partOfTable = l.indexOf('|')===0;
       if (!onTable && isRow){
         onTable=true;

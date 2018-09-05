@@ -4647,7 +4647,7 @@ var GenomePropertiesWebsite = (function () {
       value: function toMDTables(txt) {
         var onTable = false;
         return txt.split('\n').map(function (l) {
-          var isRow = l.indexOf('+--') === 0;
+          var isRow = l.indexOf('+--') === 0 || l.indexOf('+==') === 0;
           var partOfTable = l.indexOf('|') === 0;
           if (!onTable && isRow) {
             onTable = true;
