@@ -138,11 +138,18 @@ export class RstRenderer {
     const re = /`([a-zA-Z\-:@/\.\d]+)\s<([a-zA-Z\-:@/\.\d?=&]+)>`_/g;
     return txt.replace(re, '<a href="$2">$1</a>');
   }
+  addBrTags(txt) {
+    let onTable = false;
+    return txt.split('\n').map(
+      l => l.replace(/^\|/, '<br />')
+    ).join('\n');
+  }
   markup2html (txt) {
     let text = this.addHyperLinks(txt);
     text = this.extractBlocks(text);
     text = this.applySubstitutions(text);
-    text = this.toMDTables(text)
+    text = this.toMDTables(text);
+    text = this.addBrTags(text);
     return '<br/>'+this.converter.makeHtml(text);
   }
 

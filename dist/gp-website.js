@@ -4671,12 +4671,20 @@ var GenomePropertiesWebsite = (function () {
         return txt.replace(re, '<a href="$2">$1</a>');
       }
     }, {
+      key: 'addBrTags',
+      value: function addBrTags(txt) {
+        return txt.split('\n').map(function (l) {
+          return l.replace(/^\|/, '<br />');
+        }).join('\n');
+      }
+    }, {
       key: 'markup2html',
       value: function markup2html(txt) {
         var text = this.addHyperLinks(txt);
         text = this.extractBlocks(text);
         text = this.applySubstitutions(text);
         text = this.toMDTables(text);
+        text = this.addBrTags(text);
         return '<br/>' + this.converter.makeHtml(text);
       }
     }]);
