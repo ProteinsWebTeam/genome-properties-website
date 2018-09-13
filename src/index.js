@@ -84,11 +84,11 @@ class GenomePropertiesWebsite {
                           })
                       }).then(response => response.text()).then(
                           x=> {
-                              viewer.load_genome_properties_text(evt.target.fileToRead.name, x)
+                              viewer.loadGenomePropertiesText(evt.target.fileToRead.name, x)
                           }
                       )
                   } else {
-                      viewer.load_genome_properties_text(evt.target.fileToRead.name, evt.target.result);
+                      viewer.loadGenomePropertiesText(evt.target.fileToRead.name, evt.target.result);
 
                   }
               }catch(e){

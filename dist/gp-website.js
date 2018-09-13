@@ -4520,7 +4520,7 @@ var GenomePropertiesWebsite = (function () {
   }
   }).call(commonjsGlobal);
 
-
+  //# sourceMappingURL=showdown.js.map
   });
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -4857,6 +4857,7 @@ var GenomePropertiesWebsite = (function () {
                   server: this.github + "/flatfiles/gp_assignments/SUMMARY_FILE_{}.gp",
                   hierarchy_path: this.github + "/flatfiles/hierarchy.json",
                   server_tax: this.github + "/flatfiles/taxonomy.json",
+                  model_species_path: 'https://raw.githubusercontent.com/ProteinsWebTeam/genome-properties-viewer/steps/test-files/JSON_MERGED',
                   height: this.options.height || 400,
                   cell_side: this.options.cell_side || 20,
                   margin: this.options.margin || { "top": 180, "right": 50, "bottom": 10, "left": 40 }
@@ -4965,10 +4966,10 @@ var GenomePropertiesWebsite = (function () {
                   }).then(function (response) {
                     return response.text();
                   }).then(function (x) {
-                    viewer.load_genome_properties_text(evt.target.fileToRead.name, x);
+                    viewer.loadGenomePropertiesText(evt.target.fileToRead.name, x);
                   });
                 } else {
-                  viewer.load_genome_properties_text(evt.target.fileToRead.name, evt.target.result);
+                  viewer.loadGenomePropertiesText(evt.target.fileToRead.name, evt.target.result);
                 }
               } catch (e) {
                 alert('Bad formatted file');
