@@ -5089,8 +5089,13 @@ var GenomePropertiesWebsite = (function () {
     }, {
       key: "getHome",
       value: function getHome() {
+        var _this4 = this;
+
         // return this.markup2html(text);
-        return this.getResource('#home', this.github + "/docs/landing.rst?", this.markup2html.bind(this));
+        return this.getResource('#home', this.github + "/docs/landing.rst?", function (text) {
+          var output = _this4.markup2html(text);
+          return output.replace("<table ", '<table style="width:  100%; text-align:  center;"');
+        });
       }
     }, {
       key: "getAboutTabs",

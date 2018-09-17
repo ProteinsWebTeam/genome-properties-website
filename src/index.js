@@ -187,7 +187,10 @@ class GenomePropertiesWebsite {
   }
   getHome(){
     // return this.markup2html(text);
-    return this.getResource('#home', `${this.github}/docs/landing.rst?`,this.markup2html.bind(this));
+    return this.getResource('#home', `${this.github}/docs/landing.rst?`,(text) => {
+      let output = this.markup2html(text);
+      return output.replace("<table ", '<table style="width:  100%; text-align:  center;"');
+    })
   }
   getAboutTabs() {
     const resource = {
