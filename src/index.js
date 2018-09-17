@@ -76,7 +76,7 @@ class GenomePropertiesWebsite {
                   if (isIpproLine(firstline)){
                       fetch(gp_server, {
                           method: 'POST',
-                          body: 'ipprotsv='+evt.target.result,
+                          body: 'ipproname='+reader.fileToRead.name+'&ipprotsv='+evt.target.result,
                           headers: new Headers({
                               "Content-Type": "application/x-www-form-urlencoded",
                               "Access-Control-Request-Method": "POST",
@@ -84,12 +84,11 @@ class GenomePropertiesWebsite {
                           })
                       }).then(response => response.text()).then(
                           x=> {
-                              viewer.loadGenomePropertiesText(evt.target.fileToRead.name, x)
+                              viewer.loadGenomePropertiesText(reader.fileToRead.name, x);
                           }
                       )
                   } else {
-                      viewer.loadGenomePropertiesText(evt.target.fileToRead.name, evt.target.result);
-
+                      viewer.loadGenomePropertiesText(reader.fileToRead.name, evt.target.result);
                   }
               }catch(e){
                   alert('Bad formatted file');
