@@ -4948,7 +4948,8 @@ var GenomePropertiesWebsite = (function () {
         if (ev.target.id === 'newfile') {
 
           var oFiles = document.getElementById("newfile").files;
-          for (var i = 0; i < oFiles.length; i++) {
+
+          var _loop = function _loop(i) {
             var reader = new FileReader();
             reader.fileToRead = oFiles[i];
             reader.onload = function (evt) {
@@ -4957,7 +4958,7 @@ var GenomePropertiesWebsite = (function () {
                 if (isIpproLine(firstline)) {
                   fetch(gp_server, {
                     method: 'POST',
-                    body: 'ipprotsv=' + evt.target.result,
+                    body: 'ipproname=' + reader.fileToRead.name + '&ipprotsv=' + evt.target.result,
                     headers: new Headers({
                       "Content-Type": "application/x-www-form-urlencoded",
                       "Access-Control-Request-Method": "POST",
@@ -4966,10 +4967,10 @@ var GenomePropertiesWebsite = (function () {
                   }).then(function (response) {
                     return response.text();
                   }).then(function (x) {
-                    viewer.loadGenomePropertiesText(evt.target.fileToRead.name, x);
+                    viewer.loadGenomePropertiesText(reader.fileToRead.name, x);
                   });
                 } else {
-                  viewer.loadGenomePropertiesText(evt.target.fileToRead.name, evt.target.result);
+                  viewer.loadGenomePropertiesText(reader.fileToRead.name, evt.target.result);
                 }
               } catch (e) {
                 alert('Bad formatted file');
@@ -4977,6 +4978,10 @@ var GenomePropertiesWebsite = (function () {
               }
             };
             reader.readAsText(oFiles[i]);
+          };
+
+          for (var i = 0; i < oFiles.length; i++) {
+            _loop(i);
           }
         }
       };
