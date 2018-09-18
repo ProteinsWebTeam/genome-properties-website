@@ -266,6 +266,14 @@ circle.gauge-val {
     stroke: cornflowerblue;
     stroke-width: 3px;
 }
+@keyframes bouncing {
+    0% { stroke-dashoffset: 120; opacity: 0.5; }
+    50% { stroke-dashoffset: 130; opacity: 1; }
+    100% { stroke-dashoffset: 120; opacity: 0.5; }
+}
+.gauge-val.uncertain {
+    animation: bouncing 1s ease infinite;
+}
 .step-popup{
     width: 20px;
     height: 20px;
@@ -287,6 +295,18 @@ circle.gauge-val {
 }
 .gp-PARTIAL {
     background: rgb(107, 174, 214);
+}
+
+@keyframes loading {
+    0% {  opacity: 0.5;}
+    50% { opacity: 1;}
+    100% { opacity: 0.5;}
+}
+
+.loading {
+    animation: loading 2s ease infinite;
+    display:inline-block;
+    font-size: 1.2em;
 }
 
 div.info-tooltip{

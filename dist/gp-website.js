@@ -4956,6 +4956,7 @@ var GenomePropertiesWebsite = (function () {
               try {
                 var firstline = evt.target.result.split('\n')[0];
                 if (isIpproLine(firstline)) {
+                  viewer.modal.showContent("<h3><div class='loading'>◉</div>Calculation Genome Properties from InterProScan Data</h3>", true);
                   fetch(gp_server, {
                     method: 'POST',
                     body: 'ipproname=' + reader.fileToRead.name + '&ipprotsv=' + evt.target.result,
@@ -4968,6 +4969,7 @@ var GenomePropertiesWebsite = (function () {
                     return response.text();
                   }).then(function (x) {
                     viewer.loadGenomePropertiesText(reader.fileToRead.name, x);
+                    viewer.modal.setVisibility(false);
                   });
                 } else {
                   viewer.loadGenomePropertiesText(reader.fileToRead.name, evt.target.result);
