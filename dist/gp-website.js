@@ -4667,7 +4667,7 @@ var GenomePropertiesWebsite = (function () {
     }, {
       key: 'addHyperLinks',
       value: function addHyperLinks(txt) {
-        var re = /`([a-zA-Z\-:@/\.\d]+)\s<([a-zA-Z\-:@/\.\d?=&]+)>`_/g;
+        var re = /`([a-zA-Z\-:@/\.\d]+)\s<([a-zA-Z\-:@#/\.\d?=&]+)>`_/g;
         return txt.replace(re, '<a href="$2">$1</a>');
       }
     }, {
