@@ -135,7 +135,7 @@ export class RstRenderer {
     }).join('\n');
   }
   addHyperLinks(txt){
-    const re = /`([a-zA-Z\-:@/\.\d]+)\s<([a-zA-Z\-:@#/\.\d?=&]+)>`_/g;
+    const re = /`([a-zA-Z\-:@\/\.\d\s]+)<([a-zA-Z\-:@#\/\.\d?=&]+)>`_/g;
     return txt.replace(re, '<a href="$2">$1</a>');
   }
   addBrTags(txt) {
