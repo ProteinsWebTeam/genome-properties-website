@@ -4857,7 +4857,7 @@ var GenomePropertiesWebsite = (function () {
                   server: this.github + "/flatfiles/gp_assignments/SUMMARY_FILE_{}.gp",
                   hierarchy_path: this.github + "/flatfiles/hierarchy.json",
                   server_tax: this.github + "/flatfiles/taxonomy.json",
-                  model_species_path: 'https://raw.githubusercontent.com/ProteinsWebTeam/genome-properties-viewer/steps/test-files/JSON_MERGED',
+                  model_species_path: this.github + "/flatfiles/gp_assignments/json/JSON_MERGED",
                   height: this.options.height || 400,
                   cell_side: this.options.cell_side || 20,
                   margin: this.options.margin || { "top": 180, "right": 50, "bottom": 10, "left": 40 }
