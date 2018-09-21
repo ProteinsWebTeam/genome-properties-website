@@ -4520,7 +4520,7 @@ var GenomePropertiesWebsite = (function () {
   }
   }).call(commonjsGlobal);
 
-  //# sourceMappingURL=showdown.js.map
+
   });
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -5083,9 +5083,15 @@ var GenomePropertiesWebsite = (function () {
       value: function getGenProp(acc) {
         var _this3 = this;
 
-        var url = this.github + "/data/" + acc + "/DESC";
-        return this.getResource(acc, url, function (txt) {
-          return _this3.propertyRenderer.renderGenProp(parseGenProp(txt));
+        var base = this.github + "/data/" + acc + "/";
+        return this.getResource(acc, base + 'status', function (text) {
+          if (text.indexOf("public:\t1") >= 0) {
+            return _this3.getResource(acc, base + 'DESC', function (txt) {
+              return _this3.propertyRenderer.renderGenProp(parseGenProp(txt));
+            });
+          } else {
+            return "The selected property does not exist.";
+          }
         });
       }
     }, {

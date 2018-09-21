@@ -185,10 +185,16 @@ class GenomePropertiesWebsite {
     return template_tag===null ? this.embbedInSection('loading...') : template_tag;
   }
   getGenProp(acc){
-    const url = `${this.github}/data/${acc}/DESC`
-    return this.getResource(acc, url,
-      txt => this.propertyRenderer.renderGenProp(parseGenProp(txt))
-    )
+    const base = `${this.github}/data/${acc}/`
+    return this.getResource(acc, base+'status', text => {
+      if (text.indexOf("public:\t1") >=0) {
+        return this.getResource(acc, base+'DESC',
+          txt => this.propertyRenderer.renderGenProp(parseGenProp(txt))
+        );
+      } else {
+        return "The selected property does not exist.";
+      }
+    });
   }
   getHome(){
     // return this.markup2html(text);
