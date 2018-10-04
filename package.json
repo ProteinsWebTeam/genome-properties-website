@@ -24,7 +24,7 @@
     "rollup-plugin-node-resolve": "^3.3.0"
   },
   "dependencies": {
-    "genome-properties-viewer": "git+https://github.com/ProteinsWebTeam/genome-properties-viewer.git",
+    "genome-properties-viewer": "^0.2.0",
     "rst2mdown": "^0.1.0",
     "showdown": "^1.8.6"
   }
