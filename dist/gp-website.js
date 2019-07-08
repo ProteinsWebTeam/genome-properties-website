@@ -127,7 +127,7 @@ var GenomePropertiesWebsite = (function () {
     // return `<pre>${JSON.stringify(property, null, '  ')}</pre>`;
   };
 
-  var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+  var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
   function createCommonjsModule(fn, module) {
   	return module = { exports: {} }, fn(module, module.exports), module.exports;
@@ -5162,7 +5162,7 @@ var GenomePropertiesWebsite = (function () {
   var root = this;
 
   // AMD Loader
-  if (module.exports) {
+  if ( module.exports) {
     module.exports = showdown;
 
   // Regular Browser loader
@@ -5749,7 +5749,7 @@ var GenomePropertiesWebsite = (function () {
           _this2.cache[key] = embbedInSection ? _this2.embbedInSection(html) : html;
 
           _this2.loadContent(true, key);
-        }).catch(function (a) {
+        })["catch"](function (a) {
           return console.error(a);
         });
         return template_tag === null ? this.embbedInSection('loading...') : template_tag;
