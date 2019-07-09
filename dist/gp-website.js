@@ -5171,7 +5171,7 @@ var GenomePropertiesWebsite = (function () {
   }
   }).call(commonjsGlobal);
 
-
+  //# sourceMappingURL=showdown.js.map
   });
 
   var blockType = {
@@ -5332,7 +5332,7 @@ var GenomePropertiesWebsite = (function () {
     }, {
       key: "addHyperLinks",
       value: function addHyperLinks(txt) {
-        var re = /`([a-zA-Z\-:@\/\.\d\s]+)<([a-zA-Z\-:@#\/\.\d?=&]+)>`_/g;
+        var re = /`([a-zA-Z_\-:@\/\.\d\s]+)<([a-zA-Z_\-:@#\/\.\d?=&]+)>`_/g;
         return txt.replace(re, '<a href="$2">$1</a>');
       }
     }, {
@@ -5550,7 +5550,7 @@ var GenomePropertiesWebsite = (function () {
   }();
 
   function isIpproLine(line) {
-    var parts = line.split('\t');
+    var parts = line.split("\t");
     return !(parts.length < 11 || parts[1].length !== 32);
   }
 
@@ -5565,7 +5565,7 @@ var GenomePropertiesWebsite = (function () {
       this.selector = selector;
       this.container = document.querySelector(selector);
       this.github = options.content_url || "https://raw.githubusercontent.com/ebi-pf-team/genome-properties/master";
-      var gp_server = options.cgi_url || 'http://localhost/cgi-bin/test.pl';
+      var gp_server = options.cgi_url || "http://localhost/cgi-bin/test.pl";
 
       window.onhashchange = function () {
         return _this.loadContent();
@@ -5611,7 +5611,7 @@ var GenomePropertiesWebsite = (function () {
       };
 
       window.onchange = function (ev) {
-        if (ev.target.id === 'newfile') {
+        if (ev.target.id === "newfile") {
           var oFiles = document.getElementById("newfile").files;
 
           var _loop = function _loop(i) {
@@ -5620,13 +5620,13 @@ var GenomePropertiesWebsite = (function () {
 
             reader.onload = function (evt) {
               try {
-                var firstline = evt.target.result.split('\n')[0];
+                var firstline = evt.target.result.split("\n")[0];
 
                 if (isIpproLine(firstline)) {
                   viewer.modal.showContent("<h3><div class='loading'>◉</div>Calculation Genome Properties from InterProScan Data</h3>", true);
                   fetch(gp_server, {
-                    method: 'POST',
-                    body: 'ipproname=' + reader.fileToRead.name + '&ipprotsv=' + evt.target.result,
+                    method: "POST",
+                    body: "ipproname=" + reader.fileToRead.name + "&ipprotsv=" + evt.target.result,
                     headers: new Headers({
                       "Content-Type": "application/x-www-form-urlencoded",
                       "Access-Control-Request-Method": "POST",
@@ -5642,7 +5642,7 @@ var GenomePropertiesWebsite = (function () {
                   viewer.loadGenomePropertiesText(reader.fileToRead.name, evt.target.result);
                 }
               } catch (e) {
-                alert('Bad formatted file');
+                alert("Bad formatted file");
                 console.error(e);
               }
             };
@@ -5686,21 +5686,22 @@ var GenomePropertiesWebsite = (function () {
             content = this.getAboutTabs();
             break;
 
-          case '#browse':
-          case '#hierarchy':
-          case '#pathways':
-          case '#metapaths':
-          case '#systems':
-          case '#guilds':
-          case '#categories':
-          case '#complexes':
+          case "#browse":
+          case "#hierarchy":
+          case "#pathways":
+          case "#metapaths":
+          case "#systems":
+          case "#guilds":
+          case "#categories":
+          case "#complexes":
             content = this.getBrowseTabs();
             break;
 
           case "#viewer":
-            this.container.innerHTML = this.viewerRenderer.getViewerHTML();
-            this.viewerRenderer.loadViewer();
-            return;
+          case "#instructions":
+          case "#species":
+            content = this.getViewerTabs();
+            break;
 
           default:
             var propMatch = location.hash.match(/^#GenProp\d{4}/);
@@ -5718,10 +5719,17 @@ var GenomePropertiesWebsite = (function () {
           this.cache[location.hash] = content;
         }
 
-        this.container.innerHTML = content;
-        $('.has-tip').foundation();
+        if (location.hash === "#viewer") {
+          this.container.innerHTML = content + this.viewerRenderer.getViewerHTML();
+          this.viewerRenderer.loadViewer();
+        } else {
+          this.container.innerHTML = content;
+        }
+
+        return;
+        $(".has-tip").foundation();
         var timeoutID = null;
-        $('#genprop-searcher').on('input', function (e) {
+        $("#genprop-searcher").on("input", function (e) {
           if (timeoutID != null) window.clearTimeout(timeoutID);
           var term = $(this).val();
           timeoutID = window.setTimeout(function () {
@@ -5752,7 +5760,7 @@ var GenomePropertiesWebsite = (function () {
         })["catch"](function (a) {
           return console.error(a);
         });
-        return template_tag === null ? this.embbedInSection('loading...') : template_tag;
+        return template_tag === null ? this.embbedInSection("loading...") : template_tag;
       }
     }, {
       key: "getGenProp",
@@ -5760,9 +5768,9 @@ var GenomePropertiesWebsite = (function () {
         var _this3 = this;
 
         var base = "".concat(this.github, "/data/").concat(acc, "/");
-        return this.getResource(acc, base + 'status', function (text) {
+        return this.getResource(acc, base + "status", function (text) {
           if (text.indexOf("public:\t1") >= 0) {
-            return _this3.getResource(acc, base + 'DESC', function (txt) {
+            return _this3.getResource(acc, base + "DESC", function (txt) {
               return _this3.propertyRenderer.renderGenProp(parseGenProp(txt));
             });
           } else {
@@ -5776,7 +5784,7 @@ var GenomePropertiesWebsite = (function () {
         var _this4 = this;
 
         // return this.markup2html(text);
-        return this.getResource('#home', "".concat(this.github, "/docs/landing.rst?"), function (text) {
+        return this.getResource("#home", "".concat(this.github, "/docs/landing.rst?"), function (text) {
           var output = _this4.markup2html(text);
 
           return output.replace("<table ", '<table style="width:  100%; text-align:  center;"');
@@ -5786,53 +5794,69 @@ var GenomePropertiesWebsite = (function () {
       key: "getAboutTabs",
       value: function getAboutTabs() {
         var resource = {
-          "#about": '/docs/background.rst',
-          "#calculating": '/docs/calculating.rst',
-          "#documentation": '/docs/documentation.rst',
-          "#funding": '/docs/funding.rst',
-          "#contributing": '/docs/contributing.rst',
-          "#contact": '/docs/contact.rst',
-          "#release_notes": '/docs/release_notes.rst'
+          "#about": "/docs/background.rst",
+          "#calculating": "/docs/calculating.rst",
+          "#documentation": "/docs/documentation.rst",
+          "#funding": "/docs/funding.rst",
+          "#contributing": "/docs/contributing.rst",
+          "#contact": "/docs/contact.rst",
+          "#release_notes": "/docs/release_notes.rst"
         };
-        var tabs = ['About', 'Calculating', 'Funding', 'Contributing', 'Help & Documentation', 'Contact', 'Release notes'];
+        var tabs = ["About", "Calculating", "Funding", "Contributing", "Help & Documentation", "Contact", "Release notes"];
         return this.getContentTabs(resource, tabs, this.markup2html.bind(this));
       }
     }, {
       key: "getBrowseTabs",
       value: function getBrowseTabs() {
         var resource = {
-          "#pathways": '/docs/_stats/stats.PATHWAY',
-          "#metapaths": '/docs/_stats/stats.METAPATH',
-          "#systems": '/docs/_stats/stats.SYSTEM',
-          "#guilds": '/docs/_stats/stats.GUILD',
-          "#categories": '/docs/_stats/stats.CATEGORY',
-          "#complexes": '/docs/_stats/stats.COMPLEX'
+          "#pathways": "/docs/_stats/stats.PATHWAY",
+          "#metapaths": "/docs/_stats/stats.METAPATH",
+          "#systems": "/docs/_stats/stats.SYSTEM",
+          "#guilds": "/docs/_stats/stats.GUILD",
+          "#categories": "/docs/_stats/stats.CATEGORY",
+          "#complexes": "/docs/_stats/stats.COMPLEX"
         };
-        var tabs = ['Hierarchy', 'Pathways', 'Metapaths', 'Systems', 'Guilds', 'Complexes', 'Categories'];
+        var tabs = ["Hierarchy", "Pathways", "Metapaths", "Systems", "Guilds", "Complexes", "Categories"];
         return this.getContentTabs(resource, tabs, this.renderStatsFile);
+      }
+    }, {
+      key: "getViewerTabs",
+      value: function getViewerTabs() {
+        var resource = {
+          "#instructions": "/docs/viewer_Instructions.rst",
+          "#species": "/docs/species.rst"
+        };
+        var tabs = ["Viewer", "Instructions", "Species"];
+        return this.getContentTabs(resource, tabs, this.markup2html.bind(this));
       }
     }, {
       key: "getContentTabs",
       value: function getContentTabs(resource, tabs, renderer) {
+        var body = '';
+
+        if (location.hash !== "#viewer") {
+          body = location.hash === "#hierarchy" || location.hash === "#browse" ? this.getProps() : this.getResource(location.hash, "".concat(this.github).concat(resource[location.hash]), renderer);
+        }
+
         return "\n      <ul class=\"tabs\" data-tabs id=\"browse-tabs\">\n      ".concat(tabs.map(function (tab) {
-          var hash = tab.indexOf('&') === -1 ? '#' + tab.toLowerCase().replace(" ", "_") : '#documentation';
+          var hash = tab.indexOf("&") === -1 ? "#" + tab.toLowerCase().replace(" ", "_") : "#documentation";
           var isActive = hash === location.hash;
-          return "\n          <li class=\"tabs-title ".concat(isActive ? 'is-active' : '', "\" >\n            <a ").concat(isActive ? 'aria-selected="true"' : '', " href=\"").concat(hash, "\">").concat(tab, "</a>\n          </li>");
-        }).join(''), "\n      </ul>\n      <br/>\n      ").concat(location.hash === '#hierarchy' || location.hash === '#browse' ? this.getProps() : this.getResource(location.hash, "".concat(this.github).concat(resource[location.hash]), renderer), "\n    ");
+          return "\n          <li class=\"tabs-title ".concat(isActive ? "is-active" : "", "\" >\n            <a ").concat(isActive ? 'aria-selected="true"' : "", " href=\"").concat(hash, "\">").concat(tab, "</a>\n          </li>");
+        }).join(""), "\n      </ul>\n      <br/>\n      ").concat(body, "\n    ");
       }
     }, {
       key: "renderStatsFile",
       value: function renderStatsFile(txt) {
-        return "\n    <div id=\"content-browse-tab\">\n      <ul>\n        ".concat(txt.split('\n').map(function (line) {
+        return "\n    <div id=\"content-browse-tab\">\n      <ul>\n        ".concat(txt.split("\n").map(function (line) {
           if (line.trim() === "") return "";
-          var gp = line.split('\t');
+          var gp = line.split("\t");
           return "\n            <li>\n              <a href=\"#".concat(gp[0], "\">").concat(gp[0], "</a>:\n              <a href=\"#").concat(gp[0], "\">").concat(gp[1], "</a>\n            </li>");
-        }).join(''), "\n      </ul>\n    </div>");
+        }).join(""), "\n      </ul>\n    </div>");
       }
     }, {
       key: "getProps",
       value: function getProps() {
-        return this.getResource('props', "".concat(this.github, "/flatfiles/hierarchy.json"), function (txt) {
+        return this.getResource("props", "".concat(this.github, "/flatfiles/hierarchy.json"), function (txt) {
           return renderGenPropHierarchyPage(txt);
         });
       }
