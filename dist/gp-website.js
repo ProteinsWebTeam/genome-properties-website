@@ -1072,7 +1072,7 @@ var GenomePropertiesWebsite = (function () {
    * POLYFILLS
    */
   // use this instead of builtin is undefined for IE8 compatibility
-  if (typeof(console) === 'undefined') {
+  if (typeof console === 'undefined') {
     console = {
       warn: function (msg) {
         alert(msg);
@@ -2323,10 +2323,10 @@ var GenomePropertiesWebsite = (function () {
          */
         setConvFlavor = setFlavor,
 
-      /**
-       * Metadata of the document
-       * @type {{parsed: {}, raw: string, format: string}}
-       */
+        /**
+         * Metadata of the document
+         * @type {{parsed: {}, raw: string, format: string}}
+         */
         metadata = {
           parsed: {},
           raw: '',
@@ -2385,7 +2385,7 @@ var GenomePropertiesWebsite = (function () {
             'Please inform the developer that the extension should be updated!');
           legacyExtensionLoading(showdown.extensions[ext], ext);
           return;
-        // END LEGACY SUPPORT CODE
+          // END LEGACY SUPPORT CODE
 
         } else if (!showdown.helper.isUndefined(extensions[ext])) {
           ext = extensions[ext];
@@ -2928,7 +2928,7 @@ var GenomePropertiesWebsite = (function () {
       // to external links. Hash links (#) open in same page
       if (options.openLinksInNewWindow && !/^#/.test(url)) {
         // escaped _
-        result += ' target="¨E95Eblank"';
+        result += ' rel="noopener noreferrer" target="¨E95Eblank"';
       }
 
       result += '>' + linkText + '</a>';
@@ -2946,7 +2946,7 @@ var GenomePropertiesWebsite = (function () {
 
     // normal cases
     text = text.replace(/\[((?:\[[^\]]*]|[^\[\]])*)]()[ \t]*\([ \t]?<?([\S]+?(?:\([\S]*?\)[\S]*?)?)>?(?:[ \t]*((["'])([^"]*?)\5))?[ \t]?\)/g,
-                        writeAnchorTag);
+      writeAnchorTag);
 
     // handle reference-style shortcuts: [link text]
     // These must come last in case you've also got [link test][1]
@@ -2967,7 +2967,7 @@ var GenomePropertiesWebsite = (function () {
         var lnk = options.ghMentionsLink.replace(/\{u}/g, username),
             target = '';
         if (options.openLinksInNewWindow) {
-          target = ' target="¨E95Eblank"';
+          target = ' rel="noopener noreferrer" target="¨E95Eblank"';
         }
         return st + '<a href="' + lnk + '"' + target + '>' + mentions + '</a>';
       });
@@ -3000,7 +3000,7 @@ var GenomePropertiesWebsite = (function () {
             append = trailingPunctuation;
           }
           if (options.openLinksInNewWindow) {
-            target = ' target="¨E95Eblank"';
+            target = ' rel="noopener noreferrer" target="¨E95Eblank"';
           }
           return lmc + '<a href="' + link + '"' + target + '>' + lnkTxt + '</a>' + append + tmc;
         };
@@ -3194,7 +3194,7 @@ var GenomePropertiesWebsite = (function () {
 
     text = globals.converter._dispatch('codeSpans.before', text, options, globals);
 
-    if (typeof(text) === 'undefined') {
+    if (typeof text === 'undefined') {
       text = '';
     }
     text = text.replace(/(^|[^\\])(`+)([^\r]*?[^`])\2(?!`)/gm,
@@ -3601,7 +3601,7 @@ var GenomePropertiesWebsite = (function () {
 
         //2. Split the text in that position
         var subTexts = showdown.helper.splitAtIndex(text, opTagPos),
-        //3. Match recursively
+            //3. Match recursively
             newSubText1 = showdown.helper.replaceRecursiveRegExp(subTexts[1], repFunc, patLeft, patRight, 'im');
 
         // prevent an infinite loop
@@ -3716,13 +3716,13 @@ var GenomePropertiesWebsite = (function () {
 
     var headerLevelStart = (isNaN(parseInt(options.headerLevelStart))) ? 1 : parseInt(options.headerLevelStart),
 
-    // Set text-style headers:
-    //	Header 1
-    //	========
-    //
-    //	Header 2
-    //	--------
-    //
+        // Set text-style headers:
+        //	Header 1
+        //	========
+        //
+        //	Header 2
+        //	--------
+        //
         setextRegexH1 = (options.smoothLivePreview) ? /^(.+)[ \t]*\n={2,}[ \t]*\n+/gm : /^(.+)[ \t]*\n=+[ \t]*\n+/gm,
         setextRegexH2 = (options.smoothLivePreview) ? /^(.+)[ \t]*\n-{2,}[ \t]*\n+/gm : /^(.+)[ \t]*\n-+[ \t]*\n+/gm;
 
@@ -4511,7 +4511,7 @@ var GenomePropertiesWebsite = (function () {
     }
 
     var tableRgx       = /^ {0,3}\|?.+\|.+\n {0,3}\|?[ \t]*:?[ \t]*(?:[-=]){2,}[ \t]*:?[ \t]*\|[ \t]*:?[ \t]*(?:[-=]){2,}[\s\S]+?(?:\n\n|¨0)/gm,
-      //singeColTblRgx = /^ {0,3}\|.+\|\n {0,3}\|[ \t]*:?[ \t]*(?:[-=]){2,}[ \t]*:?[ \t]*\|[ \t]*\n(?: {0,3}\|.+\|\n)+(?:\n\n|¨0)/gm;
+        //singeColTblRgx = /^ {0,3}\|.+\|\n {0,3}\|[ \t]*:?[ \t]*(?:[-=]){2,}[ \t]*:?[ \t]*\|[ \t]*\n(?: {0,3}\|.+\|\n)+(?:\n\n|¨0)/gm;
         singeColTblRgx = /^ {0,3}\|.+\|[ \t]*\n {0,3}\|[ \t]*:?[ \t]*(?:[-=]){2,}[ \t]*:?[ \t]*\|[ \t]*\n( {0,3}\|.+\|[ \t]*\n)*(?:\n|¨0)/gm;
 
     function parseStyles (sLine) {
@@ -5726,7 +5726,6 @@ var GenomePropertiesWebsite = (function () {
           this.container.innerHTML = content;
         }
 
-        return;
         $(".has-tip").foundation();
         var timeoutID = null;
         $("#genprop-searcher").on("input", function (e) {

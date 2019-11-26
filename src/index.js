@@ -180,7 +180,6 @@ class GenomePropertiesWebsite {
     } else {
       this.container.innerHTML = content;
     }
-    return;
 
     $(".has-tip").foundation();
 
